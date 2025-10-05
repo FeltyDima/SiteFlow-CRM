@@ -735,8 +735,14 @@
                 <input type="hidden" id="projectId" />
                 <div class="form-group"><label for="projectName">Название проекта</label><input type="text"
                         id="projectName" class="form-control" required /></div>
-                <div class="form-group"><label for="clientName">Клиент</label><input type="text" id="clientName"
-                        class="form-control" required /></div>
+                <div class="form-group">
+                    <label for="projectSiteUrl">Сайт (URL)</label>
+                    <input type="url" id="projectSiteUrl" class="form-control" placeholder="https://..." />
+                </div>
+                <div class="form-group">
+                    <label for="projectRegistryUrl">Ссылка на реестр</label>
+                    <input type="url" id="projectRegistryUrl" class="form-control" placeholder="https://..." />
+                </div>
                 <div class="form-group"><label for="projectDescription">Описание проекта</label><textarea
                         id="projectDescription" class="form-control" placeholder="Коротко о целях/объёме"></textarea>
                 </div>
@@ -1030,7 +1036,8 @@
                 const q = (searchInput.value || '').toLowerCase();
                 let filtered = q ? projects.filter(p =>
                     (p.name || '').toLowerCase().includes(q) ||
-                    (p.client || '').toLowerCase().includes(q) ||
+                    (p.siteUrl || '').toLowerCase().includes(q) ||
+                    (p.registryUrl || '').toLowerCase().includes(q) ||
                     (p.description || '').toLowerCase().includes(q)
                 ) : projects.slice();
                 if (stageFilter) filtered = filtered.filter(p => p.status === stageFilter);
@@ -1088,7 +1095,8 @@
         <div class="task-header">
           <div>
             <div class="task-title">${esc(p.name)}</div>
-            <div class="task-client"><i class="fas fa-user"></i>${esc(p.client || '')}</div>
+            ${p.siteUrl ? `<div class="task-client"><i class="fas fa-globe"></i><a href="${esc(p.siteUrl)}" target="_blank">${esc(p.siteUrl)}</a></div>` : ''}
+${p.registryUrl ? `<div class="task-client"><i class="fas fa-file-contract"></i><a href="${esc(p.registryUrl)}" target="_blank">Реестр</a></div>` : ''}
           </div>
         </div>
         ${p.description ? `<div class="verification-info">${esc(p.description)}</div>` : ''}
@@ -1230,7 +1238,8 @@
                     $('#projectModalTitle').textContent = 'Редактировать проект';
                     setVal('projectId', p.id);
                     setVal('projectName', p.name || '');
-                    setVal('clientName', p.client || '');
+                    setVal('projectSiteUrl', p.siteUrl || '');
+                    setVal('projectRegistryUrl', p.registryUrl || '');
                     setVal('projectDescription', p.description || '');
                     setVal('projectStatus', p.status || 'todo');
                     setVal('dueDate', p.dueDate || '');
@@ -1251,14 +1260,15 @@
                 const payload = {
                     id: id || uid(),
                     name: val('projectName').trim(),
-                    client: val('clientName').trim(),
+                    siteUrl: val('projectSiteUrl').trim(),
+                    registryUrl: val('projectRegistryUrl').trim(),
                     description: val('projectDescription').trim(),
                     status: val('projectStatus') || 'todo',
                     tags: [$('#tagUrgent').checked && 'urgent', $('#tagWaiting').checked && 'waiting', $('#tagPaid').checked && 'paid'].filter(Boolean),
                     dueDate: val('dueDate') || '',
                     createdAt: id ? (projects.find(p => p.id === id)?.createdAt || new Date().toISOString()) : new Date().toISOString()
                 };
-                if (!payload.name || !payload.client) { alert('Заполни название и клиента'); return; }
+                if (!payload.name) { alert('Заполни название проекта'); return; }
                 const i = projects.findIndex(p => p.id === payload.id);
                 if (i > -1) projects[i] = { ...projects[i], ...payload }; else projects.push(payload);
                 saveAll(); render(); closeProjectModal();
@@ -1394,4 +1404,3 @@
 </body>
 
 </html>
-
