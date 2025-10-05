@@ -1095,8 +1095,9 @@
         <div class="task-header">
           <div>
             <div class="task-title">${esc(p.name)}</div>
-            ${p.siteUrl ? `<div class="task-client"><i class="fas fa-globe"></i><a href="${esc(p.siteUrl)}" target="_blank">${esc(p.siteUrl)}</a></div>` : ''}
-${p.registryUrl ? `<div class="task-client"><i class="fas fa-file-contract"></i><a href="${esc(p.registryUrl)}" target="_blank">Реестр</a></div>` : ''}
+            ${p.siteUrl ? `<div class="task-client"><i class="fas fa-globe"></i>${linkMasked(p.siteUrl, 'Сайт')}</div>` : ''}
+${p.registryUrl ? `<div class="task-client"><i class="fas fa-file-contract"></i>${linkMasked(p.registryUrl, 'Реестр')}</div>` : ''}
+
           </div>
         </div>
         ${p.description ? `<div class="verification-info">${esc(p.description)}</div>` : ''}
@@ -1389,6 +1390,11 @@ ${p.registryUrl ? `<div class="task-client"><i class="fas fa-file-contract"></i>
             function uid() { return Math.random().toString(36).slice(2, 10); }
             function addDays(d, n) { const x = new Date(d); x.setDate(x.getDate() + n); return x; }
             function esc(s) { return (s || '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])); }
+            function linkMasked(u, label) {
+                if (!u) return '';
+                const safe = esc(u);
+                return `<a href="${safe}" target="_blank" rel="noopener noreferrer" class="verification-link" title="${safe}">${esc(label)}</a>`;
+            }
             function setVal(id, v) { $('#' + id).value = v; }
             function val(id) { return $('#' + id).value; }
             function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
