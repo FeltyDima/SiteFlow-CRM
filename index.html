@@ -850,6 +850,11 @@
                 { id: 'waiting', name: 'Ждем ответ', class: 'bank-waiting' }
             ];
 
+            /* === JSONBin config === */
+            const JSONBIN_BIN_ID = "68e2d89843b1c97be95b9357";
+            const JSONBIN_KEY = "$2a$10$iFCaTH1CG0XjhE1e6aKgleOKV0rDZgNB4k7jThtMC/lKv.rVKHXym";
+            const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`;
+
             /* State */
             let projects = [];
             let verificationRequests = [];
@@ -924,42 +929,84 @@
             });
 
             /* Storage */
-            load(); render();
+            load().then(() => {
+                render();
+                startAutoRefresh(); // ← запустим авто-рефреш
+            });
 
-            function load() {
-                try {
-                    projects = JSON.parse(localStorage.getItem(PROJECTS_STORAGE_KEY) || 'null') || seedProjects();
-                    verificationRequests = JSON.parse(localStorage.getItem(VERIFICATION_STORAGE_KEY) || 'null') || seedVerification();
-                    saveAll();
-                } catch {
-                    projects = seedProjects(); verificationRequests = seedVerification(); saveAll();
-                }
-            }
-            function safeSetItem(key, value) {
-                try {
-                    localStorage.setItem(key, value);
-                    return true;
-                } catch (e) {
-                    if (e && (e.name === 'QuotaExceededError' || e.code === 22)) {
-                        alert('Не удалось сохранить: превышен лимит хранилища. Удалите лишние фото или заявки, либо экспортируйте и очистите.');
-                    } else {
-                        alert('Ошибка сохранения данных.');
+            function startAutoRefresh() {
+                const AUTO_REFRESH_MS = 15000; // каждые 15 сек
+                setInterval(async () => {
+                    // не мешаем редактированию в модалках
+                    if (projectModal.style.display === 'flex' || verificationModal.style.display === 'flex') return;
+
+                    // дождаться текущего сохранения (если используешь JSONBin saveAll с _saving)
+                    if (typeof _saving?.then === 'function') { try { await _saving; } catch (_) { } }
+
+                    try {
+                        const before = JSON.stringify({ projects, verificationRequests });
+                        await load(); // подтянуть общее состояние из облака
+                        const after = JSON.stringify({ projects, verificationRequests });
+
+                        // перерисовываем только если реально что-то изменилось
+                        if (before !== after) render();
+                    } catch (e) {
+                        console.error('auto-refresh failed', e);
                     }
-                    return false;
+                }, AUTO_REFRESH_MS);
+            }
+
+
+
+            // Загрузка общего состояния из JSONBin
+            async function load() {
+                try {
+                    const r = await fetch(JSONBIN_URL, {
+                        headers: { "X-Master-Key": JSONBIN_KEY }
+                    });
+                    if (!r.ok) throw new Error(`Fetch error: ${r.status}`);
+                    const { record } = await r.json();
+                    projects = Array.isArray(record.projects) ? record.projects : [];
+                    verificationRequests = Array.isArray(record.verifications) ? record.verifications : [];
+                } catch (e) {
+                    console.error("JSONBin load failed:", e);
+                    // если bin пустой/ошибка — зальём сиды
+                    projects = projects?.length ? projects : seedProjects?.() || [];
+                    verificationRequests = verificationRequests?.length ? verificationRequests : seedVerification?.() || [];
+                    await saveAll(); // создаст/перезапишет bin данными
                 }
             }
-            function saveAll() {
-                // лёгкая защита от переполнения: не сохраняем, если >4.5MB
-                const projStr = JSON.stringify(projects);
-                const verStr = JSON.stringify(verificationRequests);
-                const approxBytes = (projStr.length + verStr.length) * 2; // UTF-16
-                if (approxBytes > 4_500_000) {
-                    alert('Размер базы близок к лимиту браузера. Удалите часть фото/заявок или сделайте экспорт.');
+
+            // Сохранение общего состояния в JSONBin
+            let _saving = Promise.resolve(); // очередь, чтобы запросы не спорили
+            async function saveAll() {
+                const payload = JSON.stringify({ projects, verifications: verificationRequests });
+
+                // простой анти-лимит (~4.5MB). Фото лучше держать ссылками, не dataURL.
+                if (payload.length > 4_500_000) {
+                    alert("Слишком много данных (скорее всего фото). Удалите часть изображений или храните их как URL.");
                     return;
                 }
-                safeSetItem(PROJECTS_STORAGE_KEY, projStr);
-                safeSetItem(VERIFICATION_STORAGE_KEY, verStr);
+
+                _saving = _saving.then(async () => {
+                    try {
+                        const r = await fetch(JSONBIN_URL, {
+                            method: "PUT",
+                            headers: {
+                                "Content-Type": "application/json",
+                                "X-Master-Key": JSONBIN_KEY
+                            },
+                            body: payload
+                        });
+                        if (!r.ok) throw new Error(`Save error: ${r.status}`);
+                    } catch (e) {
+                        console.error("JSONBin save failed:", e);
+                        alert("Не удалось сохранить изменения в облако.");
+                    }
+                });
+                return _saving;
             }
+
 
             function seedProjects() {
                 const today = new Date(), fmt = d => d.toISOString().slice(0, 10);
@@ -971,8 +1018,8 @@
             }
             function seedVerification() {
                 return [
-                    { id: uid(), dropName: 'TechStore', siteUrl: 'https://techstore.example.com', registryUrl: '', banks: [{ name: 'Сбербанк', status: 'doing' }, { name: 'Тинькофф', status: 'todo' }], status: 'doing', images: [], notes: 'Отправили документы', createdAt: new Date().toISOString() },
-                    { id: uid(), dropName: 'FoodDelivery', siteUrl: 'https://fooddelivery.example.com', registryUrl: '', banks: [{ name: 'Альфа-Банк', status: 'todo' }], status: 'todo', images: [], notes: 'Ждем ответ', createdAt: new Date().toISOString() }
+                    { id: uid(), dropName: 'TechStore', siteUrl: 'https://techstore.example.com', registryUrl: '', banks: [{ name: 'Сбербанк', status: 'verification' }, { name: 'Тинькофф', status: 'open' }], status: 'doing', images: [], notes: 'Отправили документы', createdAt: new Date().toISOString() },
+                    { id: uid(), dropName: 'FoodDelivery', siteUrl: 'https://fooddelivery.example.com', registryUrl: '', banks: [{ name: 'Альфа-Банк', status: 'waiting' }], status: 'todo', images: [], notes: 'Ждем ответ', createdAt: new Date().toISOString() }
                 ];
             }
 
@@ -1240,7 +1287,7 @@
             }
             function closeVerificationModal() { hideModal(verificationModal); }
 
-            function addBankInput(bankName = '', bankStatus = 'todo') {
+            function addBankInput(bankName = '', bankStatus = 'open') {
                 const row = div('bank-input-row');
                 row.innerHTML = `
       <input type="text" class="form-control bank-name" placeholder="Название банка" value="${esc(bankName)}">
@@ -1256,12 +1303,12 @@
             function onImagesChosen(e) { handleImageFiles(Array.from(e.target.files || [])); e.target.value = ''; }
             function handleImageFiles(files) {
                 const existing = $all('.uploaded-image img', uploadedImages).length;
-                const left = Math.max(0, 10 - existing);
+                const left = Math.max(0, 6 - existing);
                 const pick = files.slice(0, left);
-                if (files.length > left) alert('Можно прикрепить максимум 10 фото к заявке.');
+                if (files.length > left) alert('Можно прикрепить максимум 6 фото к заявке.');
                 pick.forEach(async f => {
                     if (!f.type.startsWith('image/')) return;
-                    const dataUrl = await compressToDataURL(f, 900, 0.7); // <=900px, 70% quality
+                    const dataUrl = await compressToDataURL(f, 800, 0.6); // <=900px, 70% quality
                     addImagePreview(dataUrl);
                 });
             }
