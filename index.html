@@ -7,6 +7,7 @@
     <title>SiteFlow CRM — Проекты и Верификация</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="icon" href="favicon.ico" sizes="any">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         :root {
             --bg-primary: #0f172a;
@@ -136,7 +137,7 @@
         }
 
         .nav-item:hover {
-            background: var(--bg-tertiary)
+            background: var(--bg-terтиary)
         }
 
         .nav-item.active {
@@ -319,7 +320,7 @@
         }
 
         .verification-link {
-            display: flex;
+            display: inline-flex;
             align-items: center;
             gap: .4rem;
             color: var(--text-secondary);
@@ -350,13 +351,11 @@
             color: var(--info)
         }
 
-        /* waiting */
         .bank-verification {
             background: rgba(234, 179, 8, .15);
             color: var(--warning)
         }
 
-        /* doing */
         .bank-success {
             background: rgba(34, 197, 94, .15);
             color: var(--success)
@@ -808,7 +807,7 @@
                 </div>
 
                 <div class="form-group">
-                    <label>Фотографии (до 6, сжимаются для экономии места)</label>
+                    <label>Фотографии (до 6, сжимаются и грузятся в Storage)</label>
                     <div class="image-upload" id="imageUpload">
                         <i class="fas fa-cloud-upload-alt"></i>
                         <p>Перетащите сюда файлы или кликните для выбора</p>
@@ -832,10 +831,12 @@
     <div class="lightbox" id="lightbox"><img alt=""></div>
 
     <script>
-        (function () {
-            /* Storage keys */
-            const PROJECTS_STORAGE_KEY = 'siteflow_projects_v5';
-            const VERIFICATION_STORAGE_KEY = 'siteflow_verification_v3';
+        (async function () {
+            /* === Supabase config === */
+            const SUPABASE_URL = "https://nwoddrbiyphemunpsfvk.supabase.co";            // ← вставь своё
+            const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im53b2RkcmJpeXBoZW11bnBzZnZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTk2ODQzMzAsImV4cCI6MjA3NTI2MDMzMH0.JNwXMkxwECc0OjtKzNT_RBcPXhaxccFNRc5Y_bC4sJ4";                            // ← вставь своё
+            const STORAGE_BUCKET = "verification-images";                            // имя публичного бакета
+            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
             /* Statuses */
             const projectStatuses = [
@@ -857,15 +858,10 @@
                 { id: 'waiting', name: 'Ждем ответ', class: 'bank-waiting' }
             ];
 
-            /* === JSONBin config === */
-            const JSONBIN_BIN_ID = "68e2d89843b1c97be95b9357";
-            const JSONBIN_KEY = "$2a$10$iFCaTH1CG0XjhE1e6aKgleOKV0rDZgNB4k7jThtMC/lKv.rVKHXym";
-            const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`;
-
             /* State */
             let projects = [];
             let verificationRequests = [];
-            let stageFilter = null; // для проектов
+            let stageFilter = null;
             let currentView = 'projects';
 
             /* Refs */
@@ -894,8 +890,10 @@
             projectForm.addEventListener('submit', handleProjectFormSubmit);
             verificationForm.addEventListener('submit', handleVerificationFormSubmit);
             searchInput.addEventListener('input', debounce(render, 200));
-            $('#exportBtn').addEventListener('click', exportProjects);
-            $('#exportVerificationBtn').addEventListener('click', exportVerification);
+
+            // экспорт/импорт
+            $('#exportBtn').addEventListener('click', () => downloadJSON(projects, 'siteflow-projects.json'));
+            $('#exportVerificationBtn').addEventListener('click', () => downloadJSON(verificationRequests, 'siteflow-verification.json'));
             $('#importBtn').addEventListener('click', () => $('#importFile').click());
             $('#importVerificationBtn').addEventListener('click', () => $('#importVerificationFile').click());
             $('#importFile').addEventListener('change', importProjects);
@@ -906,11 +904,19 @@
             // image upload area
             imageUpload.addEventListener('click', () => imageInput.click());
             imageInput.addEventListener('change', onImagesChosen);
-            ;['dragenter', 'dragover'].forEach(ev => imageUpload.addEventListener(ev, e => { e.preventDefault(); imageUpload.style.borderColor = '#7aa2ff'; }));
-            ;['dragleave', 'drop'].forEach(ev => imageUpload.addEventListener(ev, e => { e.preventDefault(); imageUpload.style.borderColor = ''; }));
-            imageUpload.addEventListener('drop', (e) => { const dt = e.dataTransfer; if (!dt?.files?.length) return; handleImageFiles(Array.from(dt.files)); });
+            ['dragenter', 'dragover'].forEach(ev => imageUpload.addEventListener(ev, e => { e.preventDefault(); imageUpload.style.borderColor = '#7aa2ff'; }));
+            ['dragleave', 'drop'].forEach(ev => imageUpload.addEventListener(ev, e => { e.preventDefault(); imageUpload.style.borderColor = ''; }));
+            imageUpload.addEventListener('drop', (e) => {
+                const dt = e.dataTransfer; if (!dt?.files?.length) return; handleImageFiles(Array.from(dt.files));
+            });
 
-            window.addEventListener('keydown', (e) => { if (e.key === 'Escape') { if (projectModal.style.display === 'flex') closeProjectModal(); if (verificationModal.style.display === 'flex') closeVerificationModal(); if (lightbox.style.display === 'flex') lightbox.style.display = 'none'; } });
+            window.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    if (projectModal.style.display === 'flex') closeProjectModal();
+                    if (verificationModal.style.display === 'flex') closeVerificationModal();
+                    if (lightbox.style.display === 'flex') lightbox.style.display = 'none';
+                }
+            });
             projectModal.addEventListener('click', e => { if (e.target === projectModal) closeProjectModal(); });
             verificationModal.addEventListener('click', e => { if (e.target === verificationModal) closeVerificationModal(); });
             lightbox.addEventListener('click', () => lightbox.style.display = 'none');
@@ -935,99 +941,50 @@
                 });
             });
 
-            /* Storage */
-            load().then(() => {
-                render();
-                startAutoRefresh(); // ← запустим авто-рефреш
-            });
-
-            function startAutoRefresh() {
-                const AUTO_REFRESH_MS = 15000; // каждые 15 сек
-                setInterval(async () => {
-                    // не мешаем редактированию в модалках
-                    if (projectModal.style.display === 'flex' || verificationModal.style.display === 'flex') return;
-
-                    // дождаться текущего сохранения (если используешь JSONBin saveAll с _saving)
-                    if (typeof _saving?.then === 'function') { try { await _saving; } catch (_) { } }
-
-                    try {
-                        const before = JSON.stringify({ projects, verificationRequests });
-                        await load(); // подтянуть общее состояние из облака
-                        const after = JSON.stringify({ projects, verificationRequests });
-
-                        // перерисовываем только если реально что-то изменилось
-                        if (before !== after) render();
-                    } catch (e) {
-                        console.error('auto-refresh failed', e);
-                    }
-                }, AUTO_REFRESH_MS);
-            }
-
-
-
-            // Загрузка общего состояния из JSONBin
+            /* DB I/O */
             async function load() {
-                try {
-                    const r = await fetch(JSONBIN_URL, {
-                        headers: { "X-Master-Key": JSONBIN_KEY }
-                    });
-                    if (!r.ok) throw new Error(`Fetch error: ${r.status}`);
-                    const { record } = await r.json();
-                    projects = Array.isArray(record.projects) ? record.projects : [];
-                    verificationRequests = Array.isArray(record.verifications) ? record.verifications : [];
-                } catch (e) {
-                    console.error("JSONBin load failed:", e);
-                    // если bin пустой/ошибка — зальём сиды
-                    projects = projects?.length ? projects : seedProjects?.() || [];
-                    verificationRequests = verificationRequests?.length ? verificationRequests : seedVerification?.() || [];
-                    await saveAll(); // создаст/перезапишет bin данными
-                }
+                const { data: pData, error: pErr } = await supabase.from('projects').select('*').order('created_at', { ascending: true });
+                if (pErr) { console.error(pErr); alert('Не удалось загрузить проекты'); }
+                const { data: vData, error: vErr } = await supabase.from('verifications').select('*').order('created_at', { ascending: true });
+                if (vErr) { console.error(vErr); alert('Не удалось загрузить заявки'); }
+                projects = pData || [];
+                verificationRequests = vData || [];
             }
 
-            // Сохранение общего состояния в JSONBin
-            let _saving = Promise.resolve(); // очередь, чтобы запросы не спорили
-            async function saveAll() {
-                const payload = JSON.stringify({ projects, verifications: verificationRequests });
-
-                // простой анти-лимит (~4.5MB). Фото лучше держать ссылками, не dataURL.
-                if (payload.length > 4_500_000) {
-                    alert("Слишком много данных (скорее всего фото). Удалите часть изображений или храните их как URL.");
-                    return;
-                }
-
-                _saving = _saving.then(async () => {
-                    try {
-                        const r = await fetch(JSONBIN_URL, {
-                            method: "PUT",
-                            headers: {
-                                "Content-Type": "application/json",
-                                "X-Master-Key": JSONBIN_KEY
-                            },
-                            body: payload
-                        });
-                        if (!r.ok) throw new Error(`Save error: ${r.status}`);
-                    } catch (e) {
-                        console.error("JSONBin save failed:", e);
-                        alert("Не удалось сохранить изменения в облако.");
-                    }
-                });
-                return _saving;
+            async function saveProject(p) {
+                const { error } = await supabase.from('projects').upsert(p);
+                if (error) { console.error(error); alert('Не удалось сохранить проект'); }
             }
 
-
-            function seedProjects() {
-                const today = new Date(), fmt = d => d.toISOString().slice(0, 10);
-                return [
-                    { id: uid(), name: 'Сайт услуги', client: 'ООО «Рога и копыта»', description: 'Лендинг', status: 'doing', tags: ['urgent'], dueDate: fmt(addDays(today, 14)), createdAt: new Date().toISOString() },
-                    { id: uid(), name: 'Магазин', client: 'ИП Иванов', description: 'Каталог + корзина', status: 'todo', tags: ['paid'], dueDate: fmt(addDays(today, 30)), createdAt: new Date().toISOString() },
-                    { id: uid(), name: 'Блог', client: 'Анна Петрова', description: 'Персональный блог', status: 'applied', tags: ['waiting'], dueDate: fmt(addDays(today, 7)), createdAt: new Date().toISOString() }
-                ];
+            async function deleteProjectDB(id) {
+                const { error } = await supabase.from('projects').delete().eq('id', id);
+                if (error) { console.error(error); alert('Не удалось удалить проект'); }
             }
-            function seedVerification() {
-                return [
-                    { id: uid(), dropName: 'TechStore', siteUrl: 'https://techstore.example.com', registryUrl: '', banks: [{ name: 'Сбербанк', status: 'verification' }, { name: 'Тинькофф', status: 'open' }], status: 'doing', images: [], notes: 'Отправили документы', createdAt: new Date().toISOString() },
-                    { id: uid(), dropName: 'FoodDelivery', siteUrl: 'https://fooddelivery.example.com', registryUrl: '', banks: [{ name: 'Альфа-Банк', status: 'waiting' }], status: 'todo', images: [], notes: 'Ждем ответ', createdAt: new Date().toISOString() }
-                ];
+
+            async function saveVerification(v) {
+                const { error } = await supabase.from('verifications').upsert(v);
+                if (error) { console.error(error); alert('Не удалось сохранить заявку'); }
+            }
+
+            async function deleteVerificationDB(id) {
+                const { error } = await supabase.from('verifications').delete().eq('id', id);
+                if (error) { console.error(error); alert('Не удалось удалить заявку'); }
+            }
+
+            function startRealtime() {
+                supabase.channel('projects-realtime')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'projects' }, async () => {
+                        const { data } = await supabase.from('projects').select('*').order('created_at');
+                        projects = data || []; render();
+                    })
+                    .subscribe();
+
+                supabase.channel('verifications-realtime')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'verifications' }, async () => {
+                        const { data } = await supabase.from('verifications').select('*').order('created_at');
+                        verificationRequests = data || []; render();
+                    })
+                    .subscribe();
             }
 
             /* Render */
@@ -1037,8 +994,8 @@
                 const q = (searchInput.value || '').toLowerCase();
                 let filtered = q ? projects.filter(p =>
                     (p.name || '').toLowerCase().includes(q) ||
-                    (p.siteUrl || '').toLowerCase().includes(q) ||
-                    (p.registryUrl || '').toLowerCase().includes(q) ||
+                    (p.site_url || '').toLowerCase().includes(q) ||
+                    (p.registry_url || '').toLowerCase().includes(q) ||
                     (p.description || '').toLowerCase().includes(q)
                 ) : projects.slice();
                 if (stageFilter) filtered = filtered.filter(p => p.status === stageFilter);
@@ -1064,13 +1021,13 @@
                 const q = (searchInput.value || '').toLowerCase();
                 let filtered = verificationRequests.filter(v => {
                     const inBanks = (v.banks || []).some(b => (b.name || '').toLowerCase().includes(q));
-                    return !q || (v.dropName || '').toLowerCase().includes(q) || (v.siteUrl || '').toLowerCase().includes(q) || (v.notes || '').toLowerCase().includes(q) || inBanks;
+                    return !q || (v.drop_name || '').toLowerCase().includes(q) || (v.site_url || '').toLowerCase().includes(q) || (v.notes || '').toLowerCase().includes(q) || inBanks;
                 });
 
                 verificationBoard.innerHTML = '';
                 for (const st of verificationStatuses) {
                     const col = div('kanban-column'); col.dataset.status = st.id;
-                    const items = filtered.filter(v => v.status === st.id).sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+                    const items = filtered.filter(v => v.status === st.id).sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
                     col.innerHTML = `
         <div class="column-header">
           <div class="column-title"><i class="${st.icon}"></i><span>${st.name}</span></div>
@@ -1082,7 +1039,6 @@
                     verificationBoard.appendChild(col);
                 }
                 attachVerificationHandlers();
-                // превью в лайтбокс
                 $all('#verificationBoard .image-preview').forEach(img => {
                     img.addEventListener('click', () => showLightbox(img.src));
                 });
@@ -1090,15 +1046,14 @@
 
             function renderProjectCard(p) {
                 const tags = (p.tags || []).map(t => tagHTML(t)).join('');
-                const due = p.dueDate ? new Date(p.dueDate).toLocaleDateString('ru-RU') : 'Не указан';
+                const due = p.due_date ? new Date(p.due_date).toLocaleDateString('ru-RU') : 'Не указан';
                 return `
       <div class="task-card" draggable="true" data-id="${p.id}">
         <div class="task-header">
           <div>
             <div class="task-title">${esc(p.name)}</div>
-            ${p.siteUrl ? `<div class="task-client"><i class="fas fa-globe"></i>${linkMasked(p.siteUrl, 'Сайт')}</div>` : ''}
-${p.registryUrl ? `<div class="task-client"><i class="fas fa-file-contract"></i>${linkMasked(p.registryUrl, 'Реестр')}</div>` : ''}
-
+            ${p.site_url ? `<div class="task-client"><i class="fas fa-globe"></i>${linkMasked(p.site_url, 'Сайт')}</div>` : ''}
+            ${p.registry_url ? `<div class="task-client"><i class="fas fa-file-contract"></i>${linkMasked(p.registry_url, 'Реестр')}</div>` : ''}
           </div>
         </div>
         ${p.description ? `<div class="verification-info">${esc(p.description)}</div>` : ''}
@@ -1121,18 +1076,15 @@ ${p.registryUrl ? `<div class="task-client"><i class="fas fa-file-contract"></i>
                     return `<span class="bank-badge ${cls}">${esc(bank.name)}: ${label}</span>`;
                 }).join('');
                 const imagePreviews = (v.images || []).slice(0, 4).map(src => `<img src="${src}" class="image-preview" alt="Preview">`).join('');
-                const date = new Date(v.createdAt).toLocaleString('ru-RU');
+                const date = new Date(v.created_at).toLocaleString('ru-RU');
                 return `
       <div class="task-card" draggable="true" data-id="${v.id}">
         <div class="task-header">
           <div>
-            <div class="task-title">${esc(v.dropName)}</div>
-            <div class="task-client"><i class="fas fa-globe"></i>${esc(v.siteUrl || '')}</div>
+            <div class="task-title">${esc(v.drop_name)}</div>
+            ${v.site_url ? `<div class="task-client"><i class="fas fa-globe"></i>${linkMasked(v.site_url, 'Сайт')}</div>` : ''}
+            ${v.registry_url ? `<div class="task-client"><i class="fas fa-file-contract"></i>${linkMasked(v.registry_url, 'Реестр')}</div>` : ''}
           </div>
-        </div>
-        <div class="verification-links">
-          ${v.siteUrl ? `<a href="${esc(v.siteUrl)}" target="_blank" class="verification-link"><i class="fas fa-external-link-alt"></i> Сайт</a>` : ''}
-          ${v.registryUrl ? `<a href="${esc(v.registryUrl)}" target="_blank" class="verification-link"><i class="fas fa-file-contract"></i> Реестр компании</a>` : ''}
         </div>
         <div class="bank-status">${bankBadges}</div>
         ${v.notes ? `<div class="verification-info">${esc(v.notes)}</div>` : ''}
@@ -1154,8 +1106,8 @@ ${p.registryUrl ? `<div class="task-client"><i class="fas fa-file-contract"></i>
                 return '';
             }
             function sortByDue(a, b) {
-                const da = a.dueDate ? new Date(a.dueDate) : new Date(8640000000000000);
-                const db = b.dueDate ? new Date(b.dueDate) : new Date(8640000000000000);
+                const da = a.due_date ? new Date(a.due_date) : new Date(8640000000000000);
+                const db = b.due_date ? new Date(b.due_date) : new Date(8640000000000000);
                 return da - db;
             }
 
@@ -1169,14 +1121,18 @@ ${p.registryUrl ? `<div class="task-client"><i class="fas fa-file-contract"></i>
                     });
                 });
                 $all('#kanbanBoard .delete-task').forEach(btn => {
-                    btn.addEventListener('click', e => {
+                    btn.addEventListener('click', async e => {
                         const id = e.currentTarget.dataset.id;
-                        if (confirm('Удалить проект?')) { projects = projects.filter(x => x.id !== id); saveAll(); render(); }
+                        if (confirm('Удалить проект?')) {
+                            projects = projects.filter(x => x.id !== id);
+                            render();
+                            await deleteProjectDB(id);
+                        }
                     });
                 });
-                initDragAndDrop(projectsBoard, (dragId, status) => {
+                initDragAndDrop(projectsBoard, async (dragId, status) => {
                     const i = projects.findIndex(p => p.id === dragId);
-                    if (i > -1) { projects[i].status = status; saveAll(); render(); }
+                    if (i > -1) { projects[i].status = status; render(); await saveProject(projects[i]); }
                 });
             }
 
@@ -1189,14 +1145,18 @@ ${p.registryUrl ? `<div class="task-client"><i class="fas fa-file-contract"></i>
                     });
                 });
                 $all('#verificationBoard .delete-verification').forEach(btn => {
-                    btn.addEventListener('click', e => {
+                    btn.addEventListener('click', async e => {
                         const id = e.currentTarget.dataset.id;
-                        if (confirm('Удалить заявку на верификацию?')) { verificationRequests = verificationRequests.filter(x => x.id !== id); saveAll(); render(); }
+                        if (confirm('Удалить заявку на верификацию?')) {
+                            verificationRequests = verificationRequests.filter(x => x.id !== id);
+                            render();
+                            await deleteVerificationDB(id);
+                        }
                     });
                 });
-                initDragAndDrop(verificationBoard, (dragId, status) => {
+                initDragAndDrop(verificationBoard, async (dragId, status) => {
                     const i = verificationRequests.findIndex(v => v.id === dragId);
-                    if (i > -1) { verificationRequests[i].status = status; saveAll(); render(); }
+                    if (i > -1) { verificationRequests[i].status = status; render(); await saveVerification(verificationRequests[i]); }
                 });
             }
 
@@ -1225,7 +1185,7 @@ ${p.registryUrl ? `<div class="task-client"><i class="fas fa-file-contract"></i>
                     zone.addEventListener('drop', e => {
                         e.preventDefault();
                         const col = zone.closest('.kanban-column');
-                        if (!col || !dragId) return;
+                        if (!col) return;
                         const status = col.dataset.status;
                         onDropCb(dragId, status);
                     });
@@ -1240,11 +1200,11 @@ ${p.registryUrl ? `<div class="task-client"><i class="fas fa-file-contract"></i>
                     $('#projectModalTitle').textContent = 'Редактировать проект';
                     setVal('projectId', p.id);
                     setVal('projectName', p.name || '');
-                    setVal('projectSiteUrl', p.siteUrl || '');
-                    setVal('projectRegistryUrl', p.registryUrl || '');
+                    setVal('projectSiteUrl', p.site_url || '');
+                    setVal('projectRegistryUrl', p.registry_url || '');
                     setVal('projectDescription', p.description || '');
                     setVal('projectStatus', p.status || 'todo');
-                    setVal('dueDate', p.dueDate || '');
+                    setVal('dueDate', p.due_date || '');
                     $('#tagUrgent').checked = (p.tags || []).includes('urgent');
                     $('#tagWaiting').checked = (p.tags || []).includes('waiting');
                     $('#tagPaid').checked = (p.tags || []).includes('paid');
@@ -1256,24 +1216,22 @@ ${p.registryUrl ? `<div class="task-client"><i class="fas fa-file-contract"></i>
             }
             function closeProjectModal() { hideModal(projectModal); }
 
-            function handleProjectFormSubmit(e) {
+            async function handleProjectFormSubmit(e) {
                 e.preventDefault();
                 const id = val('projectId');
                 const payload = {
                     id: id || uid(),
                     name: val('projectName').trim(),
-                    siteUrl: val('projectSiteUrl').trim(),
-                    registryUrl: val('projectRegistryUrl').trim(),
+                    site_url: val('projectSiteUrl').trim(),
+                    registry_url: val('projectRegistryUrl').trim(),
                     description: val('projectDescription').trim(),
                     status: val('projectStatus') || 'todo',
                     tags: [$('#tagUrgent').checked && 'urgent', $('#tagWaiting').checked && 'waiting', $('#tagPaid').checked && 'paid'].filter(Boolean),
-                    dueDate: val('dueDate') || '',
-                    createdAt: id ? (projects.find(p => p.id === id)?.createdAt || new Date().toISOString()) : new Date().toISOString()
+                    due_date: nullIfEmpty(val('dueDate')),
                 };
                 if (!payload.name) { alert('Заполни название проекта'); return; }
-                const i = projects.findIndex(p => p.id === payload.id);
-                if (i > -1) projects[i] = { ...projects[i], ...payload }; else projects.push(payload);
-                saveAll(); render(); closeProjectModal();
+                await saveProject(payload);
+                closeProjectModal();
             }
 
             function openVerificationModal(v = null) {
@@ -1282,9 +1240,9 @@ ${p.registryUrl ? `<div class="task-client"><i class="fas fa-file-contract"></i>
                 if (v) {
                     $('#verificationModalTitle').textContent = 'Редактировать заявку на верификацию';
                     setVal('verificationId', v.id);
-                    setVal('dropName', v.dropName || '');
-                    setVal('siteUrl', v.siteUrl || '');
-                    setVal('registryUrl', v.registryUrl || '');
+                    setVal('dropName', v.drop_name || '');
+                    setVal('siteUrl', v.site_url || '');
+                    setVal('registryUrl', v.registry_url || '');
                     setVal('verificationStatus', v.status || 'todo');
                     setVal('verificationNotes', v.notes || '');
                     (v.banks || []).forEach(b => addBankInput(b.name, b.status));
@@ -1311,19 +1269,28 @@ ${p.registryUrl ? `<div class="task-client"><i class="fas fa-file-contract"></i>
                 bankInputs.appendChild(row);
             }
 
-            /* Images: compress + limit */
+            /* Images: compress + upload to Storage */
             function onImagesChosen(e) { handleImageFiles(Array.from(e.target.files || [])); e.target.value = ''; }
-            function handleImageFiles(files) {
+
+            async function handleImageFiles(files) {
                 const existing = $all('.uploaded-image img', uploadedImages).length;
                 const left = Math.max(0, 6 - existing);
                 const pick = files.slice(0, left);
                 if (files.length > left) alert('Можно прикрепить максимум 6 фото к заявке.');
-                pick.forEach(async f => {
-                    if (!f.type.startsWith('image/')) return;
-                    const dataUrl = await compressToDataURL(f, 800, 0.6); // <=900px, 70% quality
-                    addImagePreview(dataUrl);
-                });
+
+                for (const f of pick) {
+                    if (!f.type.startsWith('image/')) continue;
+                    const blob = await compressFile(f, 1200, 0.75);
+                    const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`;
+                    const path = `uploads/${fileName}`;
+                    const { error: upErr } = await supabase.storage.from(STORAGE_BUCKET).upload(path, blob, { contentType: 'image/jpeg', upsert: false });
+                    if (upErr) { console.error(upErr); alert('Не удалось загрузить изображение'); continue; }
+                    const { data } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(path);
+                    const url = data.publicUrl;
+                    addImagePreview(url);
+                }
             }
+
             function addImagePreview(dataUrl) {
                 const box = div('uploaded-image');
                 box.innerHTML = `<img src="${dataUrl}" alt="Uploaded"><button type="button" class="remove-image" title="Удалить"><i class="fas fa-times"></i></button>`;
@@ -1331,20 +1298,19 @@ ${p.registryUrl ? `<div class="task-client"><i class="fas fa-file-contract"></i>
                 box.querySelector('.remove-image').addEventListener('click', () => box.remove());
                 uploadedImages.appendChild(box);
             }
-            async function compressToDataURL(file, maxW = 900, quality = 0.7) {
+
+            async function compressFile(file, maxW = 1200, quality = 0.75) {
                 const src = await fileToDataURL(file);
                 const img = await loadImg(src);
                 const scale = Math.min(1, maxW / img.width);
                 const w = Math.round(img.width * scale), h = Math.round(img.height * scale);
                 const c = document.createElement('canvas'); c.width = w; c.height = h;
                 const ctx = c.getContext('2d'); ctx.drawImage(img, 0, 0, w, h);
-                // ограничим качество в пределах 0.55..0.8
-                const q = Math.max(0.55, Math.min(0.8, quality));
-                return c.toDataURL('image/jpeg', q);
+                return await new Promise(res => c.toBlob(res, 'image/jpeg', quality));
             }
 
             /* Submit verification */
-            function handleVerificationFormSubmit(e) {
+            async function handleVerificationFormSubmit(e) {
                 e.preventDefault();
                 const id = val('verificationId');
 
@@ -1359,43 +1325,77 @@ ${p.registryUrl ? `<div class="task-client"><i class="fas fa-file-contract"></i>
 
                 const payload = {
                     id: id || uid(),
-                    dropName: val('dropName').trim(),
-                    siteUrl: val('siteUrl').trim(),
-                    registryUrl: val('registryUrl').trim(),
+                    drop_name: val('dropName').trim(),
+                    site_url: val('siteUrl').trim(),
+                    registry_url: val('registryUrl').trim(),
                     banks,
                     status: val('verificationStatus') || 'todo',
                     images,
                     notes: val('verificationNotes').trim(),
-                    createdAt: id ? (verificationRequests.find(v => v.id === id)?.createdAt || new Date().toISOString()) : new Date().toISOString()
+                    created_at: id ? (verificationRequests.find(v => v.id === id)?.created_at || new Date().toISOString()) : new Date().toISOString()
                 };
 
-                if (!payload.dropName || !payload.siteUrl) { alert('Заполните имя дропа и ссылку на сайт'); return; }
+                if (!payload.drop_name || !payload.site_url) { alert('Заполните имя дропа и ссылку на сайт'); return; }
                 if (!banks.length) { alert('Добавьте хотя бы один банк'); return; }
 
-                const i = verificationRequests.findIndex(v => v.id === payload.id);
-                if (i > -1) verificationRequests[i] = { ...verificationRequests[i], ...payload }; else verificationRequests.push(payload);
-
-                saveAll(); render(); closeVerificationModal();
+                await saveVerification(payload);
+                closeVerificationModal();
             }
 
-            /* Export / Import */
-            function exportProjects() { downloadJSON(projects, 'siteflow-projects.json'); }
-            function exportVerification() { downloadJSON(verificationRequests, 'siteflow-verification.json'); }
-            function importProjects(e) { importJSONFile(e, data => { if (Array.isArray(data)) { projects = data; saveAll(); render(); } else alert('Файл должен содержать массив проектов'); }); }
-            function importVerification(e) { importJSONFile(e, data => { if (Array.isArray(data)) { verificationRequests = data; saveAll(); render(); } else alert('Файл должен содержать массив заявок'); }); }
+            /* Export / Import with DB upsert */
+            function importProjects(e) {
+                importJSONFile(e, async data => {
+                    if (!Array.isArray(data)) { alert('Файл должен содержать массив проектов'); return; }
+                    for (const p of data) {
+                        const mapped = {
+                            id: p.id || uid(),
+                            name: p.name || '',
+                            site_url: p.site_url || p.siteUrl || '',
+                            registry_url: p.registry_url || p.registryUrl || '',
+                            description: p.description || '',
+                            status: p.status || 'todo',
+                            tags: Array.isArray(p.tags) ? p.tags : [],
+                            due_date: p.due_date || p.dueDate || null,
+                            created_at: p.created_at || p.createdAt || new Date().toISOString()
+                        };
+                        await saveProject(mapped);
+                    }
+                    await load(); render();
+                });
+            }
+            function importVerification(e) {
+                importJSONFile(e, async data => {
+                    if (!Array.isArray(data)) { alert('Файл должен содержать массив заявок'); return; }
+                    for (const v of data) {
+                        const mapped = {
+                            id: v.id || uid(),
+                            drop_name: v.drop_name || v.dropName || '',
+                            site_url: v.site_url || v.siteUrl || '',
+                            registry_url: v.registry_url || v.registryUrl || '',
+                            banks: Array.isArray(v.banks) ? v.banks : [],
+                            status: v.status || 'todo',
+                            images: Array.isArray(v.images) ? v.images : [],
+                            notes: v.notes || '',
+                            created_at: v.created_at || v.createdAt || new Date().toISOString()
+                        };
+                        await saveVerification(mapped);
+                    }
+                    await load(); render();
+                });
+            }
 
             /* Helpers */
             function $(s, r = document) { return r.querySelector(s); }
             function $all(s, r = document) { return Array.from(r.querySelectorAll(s)); }
             function div(c, html) { const d = document.createElement('div'); if (c) d.className = c; if (html != null) d.innerHTML = html; return d; }
             function uid() { return Math.random().toString(36).slice(2, 10); }
-            function addDays(d, n) { const x = new Date(d); x.setDate(x.getDate() + n); return x; }
             function esc(s) { return (s || '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])); }
             function linkMasked(u, label) {
                 if (!u) return '';
                 const safe = esc(u);
                 return `<a href="${safe}" target="_blank" rel="noopener noreferrer" class="verification-link" title="${safe}">${esc(label)}</a>`;
             }
+            function nullIfEmpty(v) { return (v == null || String(v).trim() === '') ? null : v; }
             function setVal(id, v) { $('#' + id).value = v; }
             function val(id) { return $('#' + id).value; }
             function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
@@ -1406,6 +1406,11 @@ ${p.registryUrl ? `<div class="task-client"><i class="fas fa-file-contract"></i>
             function fileToDataURL(file) { return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(file); }); }
             function loadImg(src) { return new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; }); }
             function showLightbox(src) { const img = lightbox.querySelector('img'); img.src = src; lightbox.style.display = 'flex'; }
+
+            // bootstrap
+            await load();
+            render();
+            startRealtime();
         })();
     </script>
 </body>
