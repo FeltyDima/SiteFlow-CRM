@@ -1,427 +1,1349 @@
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>BankFlow CRM — Заявки</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<style>
-:root{
-  --bg-primary:#0f172a;--bg-secondary:#1e293b;--bg-tertiary:#334155;
-  --accent:#6366f1;--accent-hover:#4f46e5;
-  --text-primary:#f1f5f9;--text-secondary:#94a3b8;
-  --success:#22c55e;--warning:#eab308;--danger:#ef4444;
-  --radius:10px
-}
-*{box-sizing:border-box;margin:0;padding:0;font-family:Inter,Segoe UI,system-ui,Arial,sans-serif}
-body{background:var(--bg-primary);color:var(--text-primary);min-height:100vh;line-height:1.55}
-.app{display:flex;flex-direction:column;min-height:100vh}
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SiteFlow CRM — Проекты и Верификация</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --accent: #6366f1;
+            --accent-hover: #4f46e5;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --success: #22c55e;
+            --warning: #eab308;
+            --danger: #ef4444;
+            --info: #3b82f6;
+            --radius: 8px
+        }
 
-/* header */
-header{position:sticky;top:0;z-index:20;background:var(--bg-secondary);border-bottom:1px solid var(--bg-tertiary);
-  display:flex;gap:12px;align-items:center;padding:12px 16px}
-.logo{display:flex;gap:10px;align-items:center}
-.logo i{color:var(--accent);font-size:18px}
-.logo h1{font-size:16px}
-.search{margin-left:auto;display:flex;gap:8px;align-items:center;max-width:640px;flex:1}
-.search .field{position:relative;flex:1}
-.search .field input{width:100%;padding:10px 12px 10px 34px;border-radius:8px;border:1px solid var(--bg-tertiary);background:#0b1222;color:#fff;outline:0}
-.search .field i{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-secondary)}
-.search select, .search button{height:38px;border-radius:8px;border:1px solid var(--bg-tertiary);background:var(--bg-primary);color:#fff;padding:0 10px;cursor:pointer}
-.search button:hover{background:#1a2440}
-.btn-primary{background:var(--accent);border-color:var(--accent);color:#fff}
-.btn-primary:hover{background:var(--accent-hover)}
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif
+        }
 
-/* layout */
-.main{display:flex;gap:12px;flex:1;min-height:0}
-aside{width:240px;background:var(--bg-secondary);border-right:1px solid var(--bg-tertiary);padding:12px;flex-shrink:0}
-aside h2{font-size:12px;text-transform:uppercase;color:var(--text-secondary);letter-spacing:.06em;margin:0 0 8px 4px}
-.nav a{display:flex;gap:8px;align-items:center;padding:8px;border-radius:8px;color:#fff;text-decoration:none}
-.nav a:hover{background:var(--bg-tertiary)}
-.nav a.active{background:var(--bg-tertiary);color:var(--accent)}
-.content{flex:1;overflow:auto;padding:12px}
+        body {
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.55
+        }
 
-/* kanban */
-.board{display:flex;gap:12px;overflow:auto;padding-bottom:8px}
-.col{flex:0 0 320px;background:var(--bg-secondary);border:1px solid var(--bg-tertiary);border-radius:var(--radius);padding:10px;display:flex;flex-direction:column;max-height:75vh}
-.col-head{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--bg-tertiary);padding-bottom:6px}
-.col-title{display:flex;gap:8px;align-items:center;font-weight:700}
-.count{font-size:12px;background:var(--bg-tertiary);color:var(--text-secondary);border-radius:999px;padding:2px 8px}
-.list{flex:1;overflow:auto;display:flex;flex-direction:column;gap:10px;padding-top:10px}
-.card{background:#0b1222;border:1px solid var(--bg-terTIary);border-radius:10px;padding:10px;cursor:grab}
-.card:active{cursor:grabbing}
-.card .h{display:flex;justify-content:space-between;gap:8px}
-.card .title{font-weight:700}
-.small{font-size:12px;color:var(--text-secondary)}
-.tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
-.tag{font-size:11px;padding:2px 6px;border-radius:6px;border:1px solid transparent}
-.tag-ok{background:rgba(34,197,94,.12);color:var(--success);border-color:rgba(34,197,94,.25)}
-.tag-wait{background:rgba(234,179,8,.12);color:var(--warning);border-color:rgba(234,179,8,.25)}
-.tag-bad{background:rgba(239,68,68,.12);color:var(--danger);border-color:rgba(239,68,68,.25)}
-.footer{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--bg-tertiary);margin-top:8px;padding-top:8px}
-.actions{display:flex;gap:6px}
-.actions button{background:transparent;border:1px solid var(--bg-tertiary);color:var(--text-secondary);padding:5px 8px;border-radius:6px;cursor:pointer}
-.actions button:hover{color:#fff;border-color:#445476}
-.col.drop{outline:2px dashed var(--accent);outline-offset:-6px}
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh
+        }
 
-/* modal */
-.backdrop{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;align-items:center;justify-content:center;z-index:50;padding:12px}
-.modal{background:var(--bg-secondary);border:1px solid var(--bg-tertiary);border-radius:12px;width:min(760px,100%);max-height:90vh;overflow:auto;padding:12px}
-.mhead{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--bg-tertiary);padding-bottom:8px}
-.close{background:none;border:none;font-size:22px;color:var(--text-secondary);cursor:pointer}
-.close:hover{color:#fff}
-.form{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
-.form .full{grid-column:1/-1}
-label{display:flex;flex-direction:column;gap:6px}
-input,select,textarea{background:var(--bg-primary);border:1px solid var(--bg-tertiary);border-radius:8px;color:#fff;padding:9px;outline:0}
-textarea{min-height:120px;resize:vertical}
-.form-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:8px}
-.thumb{width:104px;height:72px;object-fit:cover;border-radius:8px;border:1px solid var(--bg-tertiary);cursor:pointer}
-.gallery{display:flex;gap:8px;flex-wrap:wrap}
+        /* header */
+        header {
+            background: var(--bg-secondary);
+            padding: 1rem 1.25rem;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 10
+        }
 
-/* lightbox */
-.lb{position:fixed;inset:0;background:rgba(0,0,0,.9);display:none;align-items:center;justify-content:center;z-index:70}
-.lb img{max-width:90vw;max-height:90vh;border-radius:10px;border:1px solid #222}
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: .6rem
+        }
 
-/* responsive */
-@media (max-width:900px){.form{grid-template-columns:1fr}.board{gap:10px}.col{flex-basis:300px}}
-</style>
+        .logo i {
+            color: var(--accent);
+            font-size: 1.4rem
+        }
+
+        .logo h1 {
+            font-weight: 700;
+            font-size: 1.25rem;
+            letter-spacing: .2px
+        }
+
+        .search-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: .5rem;
+            max-width: 560px;
+            margin-left: auto;
+            position: relative
+        }
+
+        .search-container>i {
+            position: absolute;
+            left: .6rem;
+            color: var(--text-secondary)
+        }
+
+        .search-container input {
+            flex: 1;
+            padding: .6rem .9rem .6rem 2.2rem;
+            border-radius: 8px;
+            border: 1px solid var(--bg-tertiary);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            outline: none
+        }
+
+        /* layout */
+        .main-content {
+            display: flex;
+            flex: 1;
+            min-height: 0
+        }
+
+        .sidebar {
+            width: 260px;
+            background: var(--bg-secondary);
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            flex-shrink: 0;
+            border-right: 1px solid var(--bg-tertiary)
+        }
+
+        .nav-section h2 {
+            font-size: .78rem;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+            color: var(--text-secondary);
+            margin: 0 0 .5rem .25rem
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: .6rem;
+            padding: .55rem .6rem;
+            border-radius: 8px;
+            color: var(--text-primary);
+            text-decoration: none;
+            cursor: pointer
+        }
+
+        .nav-item:hover {
+            background: var(--bg-tertiary)
+        }
+
+        .nav-item.active {
+            background: var(--bg-tertiary);
+            color: var(--accent)
+        }
+
+        .nav-item i {
+            width: 1.1rem;
+            text-align: center
+        }
+
+        .content {
+            flex: 1;
+            padding: 1rem;
+            overflow: auto;
+            min-width: 0
+        }
+
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            gap: 1rem
+        }
+
+        .btn {
+            padding: .5rem 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--bg-tertiary);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: .5rem
+        }
+
+        .btn:hover {
+            background: #243046
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover)
+        }
+
+        /* kanban */
+        .kanban-board {
+            display: flex;
+            gap: 1rem;
+            overflow-x: auto;
+            padding-bottom: .5rem
+        }
+
+        .kanban-column {
+            flex: 0 0 300px;
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            padding: .8rem;
+            display: flex;
+            flex-direction: column;
+            max-height: 72vh;
+            border: 1px solid var(--bg-tertiary)
+        }
+
+        .column-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: .5rem;
+            border-bottom: 1px solid var(--bg-tertiary)
+        }
+
+        .column-title {
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: .4rem
+        }
+
+        .task-count {
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            font-size: .75rem;
+            padding: .1rem .45rem;
+            border-radius: 10px
+        }
+
+        .task-list {
+            flex: 1;
+            overflow: auto;
+            display: flex;
+            flex-direction: column;
+            gap: .7rem;
+            padding-top: .7rem
+        }
+
+        .task-card {
+            background: var(--bg-primary);
+            border-radius: 8px;
+            padding: .75rem;
+            cursor: grab;
+            border: 1px solid var(--bg-tertiary)
+        }
+
+        .task-card:active {
+            cursor: grabbing
+        }
+
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: .35rem
+        }
+
+        .task-title {
+            font-weight: 600;
+            margin-bottom: .1rem
+        }
+
+        .task-client {
+            color: var(--text-secondary);
+            font-size: .86rem;
+            display: flex;
+            gap: .35rem;
+            align-items: center
+        }
+
+        .task-tags {
+            display: flex;
+            gap: .35rem;
+            margin: .45rem 0 0;
+            flex-wrap: wrap
+        }
+
+        .tag {
+            padding: .15rem .45rem;
+            border-radius: 4px;
+            font-size: .74rem;
+            font-weight: 600;
+            border: 1px solid transparent
+        }
+
+        .tag-urgent {
+            background: rgba(239, 68, 68, .12);
+            color: var(--danger);
+            border-color: rgba(239, 68, 68, .25)
+        }
+
+        .tag-waiting {
+            background: rgba(234, 179, 8, .12);
+            color: var(--warning);
+            border-color: rgba(234, 179, 8, .25)
+        }
+
+        .tag-paid {
+            background: rgba(34, 197, 94, .12);
+            color: var(--success);
+            border-color: rgba(34, 197, 94, .25)
+        }
+
+        .verification-info {
+            margin: .5rem 0;
+            font-size: .85rem
+        }
+
+        .verification-links {
+            display: flex;
+            flex-direction: column;
+            gap: .4rem;
+            margin: .5rem 0
+        }
+
+        .verification-link {
+            display: flex;
+            align-items: center;
+            gap: .4rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: .85rem
+        }
+
+        .verification-link:hover {
+            color: var(--accent)
+        }
+
+        .bank-status {
+            display: flex;
+            flex-wrap: wrap;
+            gap: .3rem;
+            margin: .5rem 0
+        }
+
+        .bank-badge {
+            padding: .2rem .5rem;
+            border-radius: 4px;
+            font-size: .7rem;
+            font-weight: 600
+        }
+
+        .bank-open {
+            background: rgba(59, 130, 246, .15);
+            color: var(--info)
+        }
+
+        /* waiting */
+        .bank-verification {
+            background: rgba(234, 179, 8, .15);
+            color: var(--warning)
+        }
+
+        /* doing */
+        .bank-success {
+            background: rgba(34, 197, 94, .15);
+            color: var(--success)
+        }
+
+        .bank-rejected {
+            background: rgba(239, 68, 68, .15);
+            color: var(--danger)
+        }
+
+        .image-previews {
+            display: flex;
+            gap: .5rem;
+            margin-top: .5rem;
+            flex-wrap: wrap
+        }
+
+        .image-preview {
+            width: 60px;
+            height: 60px;
+            border-radius: 4px;
+            object-fit: cover;
+            border: 1px solid var(--bg-tertiary);
+            cursor: pointer
+        }
+
+        .task-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: .55rem;
+            padding-top: .45rem;
+            border-top: 1px solid var(--bg-tertiary)
+        }
+
+        .task-date {
+            font-size: .8rem;
+            color: var(--text-secondary);
+            display: flex;
+            gap: .35rem;
+            align-items: center
+        }
+
+        .task-actions {
+            display: flex;
+            gap: .4rem
+        }
+
+        .task-actions button {
+            background: none;
+            border: 1px solid var(--bg-tertiary);
+            color: var(--text-secondary);
+            padding: .3rem .45rem;
+            border-radius: 6px;
+            cursor: pointer
+        }
+
+        .task-actions button:hover {
+            color: var(--text-primary);
+            border-color: #3b4a65
+        }
+
+        .task-card.dragging {
+            opacity: .6
+        }
+
+        .kanban-column.drop-zone {
+            outline: 2px dashed var(--accent);
+            outline-offset: -6px
+        }
+
+        /* modal */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            padding: 1rem
+        }
+
+        .modal {
+            background: var(--bg-secondary);
+            border: 1px solid var(--bg-tertiary);
+            border-radius: 8px;
+            width: min(680px, 100%);
+            max-height: 90vh;
+            overflow: auto;
+            padding: 1rem
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: .6rem;
+            border-bottom: 1px solid var(--bg-tertiary)
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            cursor: pointer
+        }
+
+        .close-modal:hover {
+            color: #fff
+        }
+
+        .form-group {
+            margin: .9rem 0
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: .35rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: .9rem
+        }
+
+        .form-control {
+            width: 100%;
+            padding: .6rem .7rem;
+            border-radius: 8px;
+            border: 1px solid var(--bg-tertiary);
+            background: var(--bg-primary);
+            color: #fff;
+            outline: none
+        }
+
+        .form-control:focus {
+            border-color: var(--accent)
+        }
+
+        textarea.form-control {
+            min-height: 100px;
+            resize: vertical
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: .6rem;
+            margin-top: 1rem
+        }
+
+        .bank-inputs {
+            display: flex;
+            flex-direction: column;
+            gap: .5rem;
+            margin-top: .5rem
+        }
+
+        .bank-input-row {
+            display: flex;
+            gap: .5rem
+        }
+
+        .bank-input-row select,
+        .bank-input-row input {
+            flex: 1
+        }
+
+        .remove-bank {
+            background: var(--danger);
+            border: none;
+            color: white;
+            border-radius: 4px;
+            width: 30px;
+            cursor: pointer
+        }
+
+        .add-bank {
+            align-self: flex-start
+        }
+
+        .image-upload {
+            border: 2px dashed var(--bg-tertiary);
+            border-radius: 8px;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            margin-top: .5rem
+        }
+
+        .image-upload:hover {
+            border-color: var(--accent)
+        }
+
+        .uploaded-images {
+            display: flex;
+            gap: .5rem;
+            flex-wrap: wrap;
+            margin-top: .5rem
+        }
+
+        .uploaded-image {
+            position: relative;
+            width: 100px;
+            height: 100px
+        }
+
+        .uploaded-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 4px
+        }
+
+        .remove-image {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--danger);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            font-size: 12px
+        }
+
+        /* empty */
+        .empty-state {
+            text-align: center;
+            padding: 1.2rem;
+            color: var(--text-secondary)
+        }
+
+        .empty-state i {
+            font-size: 2rem;
+            margin-bottom: .4rem;
+            opacity: .6
+        }
+
+        /* lightbox */
+        .lightbox {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .9);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 70
+        }
+
+        .lightbox img {
+            max-width: 92vw;
+            max-height: 92vh;
+            border-radius: 10px;
+            border: 1px solid #222
+        }
+
+        /* responsive */
+        @media (max-width:992px) {
+            .main-content {
+                flex-direction: column
+            }
+
+            .sidebar {
+                width: 100%
+            }
+
+            .kanban-column {
+                flex: 0 0 280px
+            }
+        }
+
+        @media (max-width:576px) {
+            header {
+                flex-direction: column;
+                align-items: flex-start
+            }
+
+            .search-container {
+                width: 100%;
+                max-width: none
+            }
+
+            .content {
+                padding: .9rem
+            }
+
+            .content-header {
+                flex-direction: column;
+                align-items: flex-start
+            }
+
+            .bank-input-row {
+                flex-direction: column
+            }
+        }
+    </style>
 </head>
+
 <body>
-<div class="app">
-  <header>
-    <div class="logo"><i class="fas fa-building-columns"></i><h1>BankFlow CRM</h1></div>
-    <div class="search">
-      <div class="field"><i class="fas fa-search"></i><input id="q" placeholder="Поиск: дроп / банк / ссылки / заметки"></div>
-      <select id="fStatus"></select>
-      <button id="export" title="Экспорт JSON"><i class="fas fa-file-export"></i></button>
-      <input id="importFile" type="file" accept="application/json" hidden>
-      <button id="import" title="Импорт JSON"><i class="fas fa-file-import"></i></button>
-      <button class="btn-primary" id="add"><i class="fas fa-plus"></i>&nbsp;Новая заявка</button>
-    </div>
-  </header>
+    <div class="app-container">
+        <header>
+            <div class="logo"><i class="fas fa-project-diagram"></i>
+                <h1>SiteFlow CRM</h1>
+            </div>
+            <div class="search-container">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Поиск…" />
+            </div>
+        </header>
 
-  <div class="main">
-    <aside>
-      <h2>Статусы банка</h2>
-      <nav class="nav" id="side"></nav>
-    </aside>
-    <main class="content">
-      <div class="board" id="board"></div>
-    </main>
-  </div>
-</div>
+        <div class="main-content">
+            <aside class="sidebar">
+                <div class="nav-section">
+                    <h2>Основное</h2>
+                    <a class="nav-item active" data-page="projects"><i
+                            class="fas fa-th-large"></i><span>Проекты</span></a>
+                    <a class="nav-item" data-page="verification"><i
+                            class="fas fa-shield-alt"></i><span>Верификация</span></a>
+                </div>
+                <div class="nav-section">
+                    <h2>Этапы (проекты)</h2>
+                    <a class="nav-item" data-stage="todo"><i class="fas fa-inbox"></i><span>Ожидает работы</span></a>
+                    <a class="nav-item" data-stage="doing"><i class="fas fa-cogs"></i><span>В работе</span></a>
+                    <a class="nav-item" data-stage="applied"><i class="fas fa-check"></i><span>Применили</span></a>
+                    <a class="nav-item" data-stage="not_applied"><i class="fas fa-times"></i><span>Не
+                            применили</span></a>
+                </div>
+            </aside>
 
-<!-- Modal -->
-<div class="backdrop" id="modalWrap" aria-hidden="true">
-  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="ttl">
-    <div class="mhead">
-      <h3 id="ttl">Заявка</h3>
-      <button class="close" id="close">&times;</button>
-    </div>
-    <form class="form" id="form">
-      <input type="hidden" id="id">
-      <label><span>Имя дропа</span>
-        <input id="drop" required>
-      </label>
-      <label><span>Банк</span>
-        <input id="bank" list="banksList" required>
-        <datalist id="banksList"></datalist>
-      </label>
-      <label><span>Статус банка</span>
-        <select id="status" required></select>
-      </label>
-      <label><span>Этап сайта (брф/дизайн/верстка/тест/готово)</span>
-        <select id="siteStage">
-          <option>Бриф</option><option>Дизайн</option><option>Верстка</option><option>Тест</option><option>Готово</option>
-        </select>
-      </label>
-      <label class="full"><span>Ссылка на сайт</span>
-        <input id="siteUrl" type="url" placeholder="https://...">
-      </label>
-      <label class="full"><span>Ссылка на реестр компании</span>
-        <input id="regUrl" type="url" placeholder="https://...">
-      </label>
-      <label class="full"><span>Фото (до 10, сжатие до ~1280px)</span>
-        <input id="photos" type="file" accept="image/*" multiple>
-      </label>
-      <div class="full">
-        <div class="gallery" id="thumbs"></div>
-      </div>
-      <label class="full"><span>Комментарий</span>
-        <textarea id="notes" placeholder="заметки..."></textarea>
-      </label>
-      <div class="form-actions full">
-        <button type="button" id="cancel">Отмена</button>
-        <button class="btn-primary">Сохранить</button>
-      </div>
-    </form>
-  </div>
-</div>
+            <main class="content">
+                <!-- Projects -->
+                <div id="projects-view" class="content-view">
+                    <div class="content-header">
+                        <h2>Мои проекты</h2>
+                        <div>
+                            <button class="btn" id="exportBtn"><i class="fas fa-file-export"></i>Экспорт</button>
+                            <input id="importFile" type="file" accept="application/json" hidden>
+                            <button class="btn" id="importBtn"><i class="fas fa-file-import"></i>Импорт</button>
+                            <button class="btn btn-primary" id="addProjectBtn"><i class="fas fa-plus"></i>Новый
+                                проект</button>
+                        </div>
+                    </div>
+                    <div class="kanban-board" id="kanbanBoard"></div>
+                </div>
 
-<!-- Lightbox -->
-<div class="lb" id="lb"><img alt=""><!-- click to close --></div>
-
-<script>
-(() => {
-  /* ===== Config ===== */
-  const STORAGE_KEY = 'bankflow_apps_v1';
-  const STATUSES = [
-    { id:'open', name:'Открыто', icon:'fas fa-inbox' },
-    { id:'verify', name:'На верифе', icon:'fas fa-id-card' },
-    { id:'wait', name:'Ждём ответ', icon:'fas fa-hourglass-half' },
-    { id:'success', name:'Успех', icon:'fas fa-circle-check' },
-    { id:'decline', name:'Отказ', icon:'fas fa-circle-xmark' },
-  ];
-
-  /* ===== State ===== */
-  let items = [];         // заявки
-  let statusFilter = null;
-  const board = byId('board');
-  const side = byId('side');
-
-  /* ===== Init ===== */
-  load();
-  // sidebar
-  side.innerHTML = '<a class="active"><i class="fas fa-th-large"></i>Все</a>' +
-    STATUSES.map(s=>`<a data-s="${s.id}"><i class="${s.icon}"></i>${s.name}</a>`).join('');
-  side.querySelectorAll('a').forEach(a=>{
-    a.addEventListener('click', ()=>{
-      side.querySelectorAll('a').forEach(x=>x.classList.remove('active'));
-      a.classList.add('active');
-      statusFilter = a.dataset.s || null;
-      render();
-    });
-  });
-
-  // header controls
-  byId('add').onclick = () => openModal();
-  byId('close').onclick = closeModal;
-  byId('cancel').onclick = closeModal;
-  byId('modalWrap').addEventListener('click', e => { if (e.target.id==='modalWrap') closeModal(); });
-  byId('q').addEventListener('input', debounce(render, 200));
-  byId('export').onclick = exportJSON;
-  byId('import').onclick = () => byId('importFile').click();
-  byId('importFile').addEventListener('change', onImport);
-
-  // status select + banks datalist
-  const stSel = byId('status'); stSel.innerHTML = STATUSES.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
-  fillBanksDatalist();
-
-  // lightbox
-  const lb = byId('lb'); lb.addEventListener('click', ()=> lb.style.display='none');
-
-  render();
-
-  /* ===== Render ===== */
-  function render(){
-    const q = (byId('q').value||'').toLowerCase();
-    let arr = items.slice();
-    if(statusFilter) arr = arr.filter(x=>x.bank_status===statusFilter);
-    if(q){
-      arr = arr.filter(x =>
-        (x.drop||'').toLowerCase().includes(q) ||
-        (x.bank||'').toLowerCase().includes(q) ||
-        (x.site_url||'').toLowerCase().includes(q) ||
-        (x.reg_url||'').toLowerCase().includes(q) ||
-        (x.notes||'').toLowerCase().includes(q));
-    }
-
-    board.innerHTML='';
-    for (const st of STATUSES){
-      const list = arr.filter(x=>x.bank_status===st.id).sort((a,b)=>(b.updated_at||0)-(a.updated_at||0));
-      const col = el('div','col'); col.dataset.status=st.id;
-      col.innerHTML = `
-        <div class="col-head">
-          <div class="col-title"><i class="${st.icon}"></i><span>${st.name}</span></div>
-          <div class="count">${list.length}</div>
+                <!-- Verification -->
+                <div id="verification-view" class="content-view" style="display:none">
+                    <div class="content-header">
+                        <h2>Верификация сайтов</h2>
+                        <div>
+                            <button class="btn" id="exportVerificationBtn"><i
+                                    class="fas fa-file-export"></i>Экспорт</button>
+                            <input id="importVerificationFile" type="file" accept="application/json" hidden>
+                            <button class="btn" id="importVerificationBtn"><i
+                                    class="fas fa-file-import"></i>Импорт</button>
+                            <button class="btn btn-primary" id="addVerificationBtn"><i class="fas fa-plus"></i>Новая
+                                заявка</button>
+                        </div>
+                    </div>
+                    <div class="kanban-board" id="verificationBoard"></div>
+                </div>
+            </main>
         </div>
-        <div class="list" data-list="${st.id}"></div>`;
-      const ul = col.querySelector('.list');
-      if(!list.length){
-        const emp = el('div', 'small', `<i class="${st.icon}"></i> Нет заявок`);
-        emp.style.textAlign='center'; emp.style.opacity='.7'; emp.style.padding='10px 0';
-        ul.appendChild(emp);
-      } else {
-        list.forEach(r=> ul.appendChild(renderCard(r)));
-      }
-      board.appendChild(col);
-    }
-    initDnD();
-  }
+    </div>
 
-  function renderCard(r){
-    const card = el('div','card'); card.draggable = true; card.dataset.id = r.id;
-    const tag = r.bank_status==='success' ? '<span class="tag tag-ok">OK</span>' :
-                r.bank_status==='wait' ? '<span class="tag tag-wait">Ожидаем</span>' :
-                r.bank_status==='decline' ? '<span class="tag tag-bad">Отказ</span>' : '';
-    const updated = r.updated_at ? new Date(r.updated_at).toLocaleString('ru-RU') : '';
-    card.innerHTML = `
-      <div class="h">
-        <div>
-          <div class="title">${esc(r.bank)} — ${esc(r.drop)}</div>
-          <div class="small"><i class="fas fa-link"></i> ${linkify(r.site_url)} &nbsp;•&nbsp; <i class="fas fa-building"></i> ${linkify(r.reg_url)}</div>
+    <!-- Project Modal -->
+    <div class="modal-backdrop" id="projectModal" aria-hidden="true">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="projectModalTitle">
+            <div class="modal-header">
+                <h3 id="projectModalTitle">Добавить проект</h3>
+                <button class="close-modal" id="closeProjectModal" aria-label="Закрыть">&times;</button>
+            </div>
+            <form id="projectForm">
+                <input type="hidden" id="projectId" />
+                <div class="form-group"><label for="projectName">Название проекта</label><input type="text"
+                        id="projectName" class="form-control" required /></div>
+                <div class="form-group"><label for="clientName">Клиент</label><input type="text" id="clientName"
+                        class="form-control" required /></div>
+                <div class="form-group"><label for="projectDescription">Описание проекта</label><textarea
+                        id="projectDescription" class="form-control" placeholder="Коротко о целях/объёме"></textarea>
+                </div>
+                <div class="form-group"><label for="projectStatus">Статус</label>
+                    <select id="projectStatus" class="form-control" required>
+                        <option value="todo">Ожидает работы</option>
+                        <option value="doing">В работе</option>
+                        <option value="applied">Применили</option>
+                        <option value="not_applied">Не применили</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Теги</label>
+                    <div style="display:flex; gap:.6rem; flex-wrap:wrap">
+                        <label style="display:flex; align-items:center; gap:.35rem"><input type="checkbox"
+                                id="tagUrgent" value="urgent"><span class="tag tag-urgent">Срочно</span></label>
+                        <label style="display:flex; align-items:center; gap:.35rem"><input type="checkbox"
+                                id="tagWaiting" value="waiting"><span class="tag tag-waiting">Ожидает</span></label>
+                        <label style="display:flex; align-items:center; gap:.35rem"><input type="checkbox" id="tagPaid"
+                                value="paid"><span class="tag tag-paid">Оплачено</span></label>
+                    </div>
+                </div>
+                <div class="form-group"><label for="dueDate">Срок сдачи</label><input type="date" id="dueDate"
+                        class="form-control" /></div>
+                <div class="form-actions"><button type="button" class="btn" id="cancelProject">Отмена</button><button
+                        type="submit" class="btn btn-primary">Сохранить</button></div>
+            </form>
         </div>
-      </div>
-      <div class="tags">${tag}</div>
-      <div class="footer">
-        <div class="small"><i class="far fa-clock"></i> ${updated}</div>
-        <div class="actions">
-          <button title="Открыть" class="open"><i class="fas fa-pen-to-square"></i></button>
-          <button title="Удалить" class="del"><i class="fas fa-trash"></i></button>
+    </div>
+
+    <!-- Verification Modal -->
+    <div class="modal-backdrop" id="verificationModal" aria-hidden="true">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="verificationModalTitle">
+            <div class="modal-header">
+                <h3 id="verificationModalTitle">Добавить заявку на верификацию</h3>
+                <button class="close-modal" id="closeVerificationModal" aria-label="Закрыть">&times;</button>
+            </div>
+            <form id="verificationForm">
+                <input type="hidden" id="verificationId" />
+                <div class="form-group"><label for="dropName">Имя дропа</label><input type="text" id="dropName"
+                        class="form-control" required /></div>
+                <div class="form-group"><label for="siteUrl">Ссылка на сайт</label><input type="url" id="siteUrl"
+                        class="form-control" required /></div>
+                <div class="form-group"><label for="registryUrl">Ссылка на реестр компании</label><input type="url"
+                        id="registryUrl" class="form-control" /></div>
+
+                <div class="form-group">
+                    <label>Банки и статусы</label>
+                    <div class="bank-inputs" id="bankInputs"></div>
+                    <button type="button" class="btn add-bank" id="addBankBtn"><i class="fas fa-plus"></i> Добавить
+                        банк</button>
+                </div>
+
+                <div class="form-group">
+                    <label for="verificationStatus">Статус верификации</label>
+                    <select id="verificationStatus" class="form-control" required>
+                        <option value="todo">Ожидает работы</option>
+                        <option value="doing">В работе</option>
+                        <option value="success">Успех</option>
+                        <option value="rejected">Отклонено</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Фотографии (до 10, сжимаются для экономии места)</label>
+                    <div class="image-upload" id="imageUpload">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Перетащите сюда файлы или кликните для выбора</p>
+                        <input type="file" id="imageInput" multiple accept="image/*" style="display:none">
+                    </div>
+                    <div class="uploaded-images" id="uploadedImages"></div>
+                </div>
+
+                <div class="form-group"><label for="verificationNotes">Примечания</label>
+                    <textarea id="verificationNotes" class="form-control"
+                        placeholder="Дополнительная информация о процессе верификации"></textarea>
+                </div>
+                <div class="form-actions"><button type="button" class="btn"
+                        id="cancelVerification">Отмена</button><button type="submit"
+                        class="btn btn-primary">Сохранить</button></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Lightbox -->
+    <div class="lightbox" id="lightbox"><img alt=""></div>
+
+    <script>
+        (function () {
+            /* Storage keys */
+            const PROJECTS_STORAGE_KEY = 'siteflow_projects_v5';
+            const VERIFICATION_STORAGE_KEY = 'siteflow_verification_v3';
+
+            /* Statuses */
+            const projectStatuses = [
+                { id: 'todo', name: 'Ожидает работы', icon: 'fas fa-inbox' },
+                { id: 'doing', name: 'В работе', icon: 'fas fa-cogs' },
+                { id: 'applied', name: 'Применили', icon: 'fas fa-check' },
+                { id: 'not_applied', name: 'Не применили', icon: 'fas fa-times' }
+            ];
+            const verificationStatuses = [
+                { id: 'todo', name: 'Ожидает работы', icon: 'fas fa-inbox' },
+                { id: 'doing', name: 'В работе', icon: 'fas fa-spinner' },
+                { id: 'success', name: 'Успех', icon: 'fas fa-check-circle' },
+                { id: 'rejected', name: 'Отклонено', icon: 'fas fa-times-circle' }
+            ];
+            const bankStatuses = [
+                { id: 'open', name: 'Открыто', class: 'bank-open' },
+                { id: 'rejected', name: 'Отказ', class: 'bank-rejected' },
+                { id: 'verification', name: 'На верифе', class: 'bank-verification' },
+                { id: 'waiting', name: 'Ждем ответ', class: 'bank-waiting' }
+            ];
+
+            /* State */
+            let projects = [];
+            let verificationRequests = [];
+            let stageFilter = null; // для проектов
+            let currentView = 'projects';
+
+            /* Refs */
+            const projectsView = $('#projects-view');
+            const verificationView = $('#verification-view');
+            const projectsBoard = $('#kanbanBoard');
+            const verificationBoard = $('#verificationBoard');
+            const searchInput = $('#searchInput');
+            const projectModal = $('#projectModal');
+            const verificationModal = $('#verificationModal');
+            const projectForm = $('#projectForm');
+            const verificationForm = $('#verificationForm');
+            const bankInputs = $('#bankInputs');
+            const imageUpload = $('#imageUpload');
+            const imageInput = $('#imageInput');
+            const uploadedImages = $('#uploadedImages');
+            const lightbox = $('#lightbox');
+
+            /* Init UI */
+            $('#addProjectBtn').addEventListener('click', () => openProjectModal());
+            $('#addVerificationBtn').addEventListener('click', () => openVerificationModal());
+            $('#closeProjectModal').addEventListener('click', closeProjectModal);
+            $('#closeVerificationModal').addEventListener('click', closeVerificationModal);
+            $('#cancelProject').addEventListener('click', closeProjectModal);
+            $('#cancelVerification').addEventListener('click', closeVerificationModal);
+            projectForm.addEventListener('submit', handleProjectFormSubmit);
+            verificationForm.addEventListener('submit', handleVerificationFormSubmit);
+            searchInput.addEventListener('input', debounce(render, 200));
+            $('#exportBtn').addEventListener('click', exportProjects);
+            $('#exportVerificationBtn').addEventListener('click', exportVerification);
+            $('#importBtn').addEventListener('click', () => $('#importFile').click());
+            $('#importVerificationBtn').addEventListener('click', () => $('#importVerificationFile').click());
+            $('#importFile').addEventListener('change', importProjects);
+            $('#importVerificationFile').addEventListener('change', importVerification);
+
+            $('#addBankBtn').addEventListener('click', () => addBankInput());
+
+            // image upload area
+            imageUpload.addEventListener('click', () => imageInput.click());
+            imageInput.addEventListener('change', onImagesChosen);
+            ;['dragenter', 'dragover'].forEach(ev => imageUpload.addEventListener(ev, e => { e.preventDefault(); imageUpload.style.borderColor = '#7aa2ff'; }));
+            ;['dragleave', 'drop'].forEach(ev => imageUpload.addEventListener(ev, e => { e.preventDefault(); imageUpload.style.borderColor = ''; }));
+            imageUpload.addEventListener('drop', (e) => { const dt = e.dataTransfer; if (!dt?.files?.length) return; handleImageFiles(Array.from(dt.files)); });
+
+            window.addEventListener('keydown', (e) => { if (e.key === 'Escape') { if (projectModal.style.display === 'flex') closeProjectModal(); if (verificationModal.style.display === 'flex') closeVerificationModal(); if (lightbox.style.display === 'flex') lightbox.style.display = 'none'; } });
+            projectModal.addEventListener('click', e => { if (e.target === projectModal) closeProjectModal(); });
+            verificationModal.addEventListener('click', e => { if (e.target === verificationModal) closeVerificationModal(); });
+            lightbox.addEventListener('click', () => lightbox.style.display = 'none');
+
+            // view nav
+            $all('.sidebar .nav-item[data-page]').forEach(item => {
+                item.addEventListener('click', () => {
+                    $all('.sidebar .nav-item[data-page]').forEach(i => i.classList.remove('active'));
+                    item.classList.add('active');
+                    const page = item.dataset.page;
+                    stageFilter = null; $all('.sidebar .nav-item[data-stage]').forEach(i => i.classList.remove('active'));
+                    if (page === 'projects') { currentView = 'projects'; projectsView.style.display = ''; verificationView.style.display = 'none'; }
+                    else { currentView = 'verification'; projectsView.style.display = 'none'; verificationView.style.display = ''; }
+                    render();
+                });
+            });
+            // stage filters (projects)
+            $all('.sidebar .nav-item[data-stage]').forEach(item => {
+                item.addEventListener('click', () => {
+                    $all('.sidebar .nav-item[data-stage]').forEach(i => i.classList.remove('active'));
+                    stageFilter = item.dataset.stage; item.classList.add('active'); render();
+                });
+            });
+
+            /* Storage */
+            load(); render();
+
+            function load() {
+                try {
+                    projects = JSON.parse(localStorage.getItem(PROJECTS_STORAGE_KEY) || 'null') || seedProjects();
+                    verificationRequests = JSON.parse(localStorage.getItem(VERIFICATION_STORAGE_KEY) || 'null') || seedVerification();
+                    saveAll();
+                } catch {
+                    projects = seedProjects(); verificationRequests = seedVerification(); saveAll();
+                }
+            }
+            function safeSetItem(key, value) {
+                try {
+                    localStorage.setItem(key, value);
+                    return true;
+                } catch (e) {
+                    if (e && (e.name === 'QuotaExceededError' || e.code === 22)) {
+                        alert('Не удалось сохранить: превышен лимит хранилища. Удалите лишние фото или заявки, либо экспортируйте и очистите.');
+                    } else {
+                        alert('Ошибка сохранения данных.');
+                    }
+                    return false;
+                }
+            }
+            function saveAll() {
+                // лёгкая защита от переполнения: не сохраняем, если >4.5MB
+                const projStr = JSON.stringify(projects);
+                const verStr = JSON.stringify(verificationRequests);
+                const approxBytes = (projStr.length + verStr.length) * 2; // UTF-16
+                if (approxBytes > 4_500_000) {
+                    alert('Размер базы близок к лимиту браузера. Удалите часть фото/заявок или сделайте экспорт.');
+                    return;
+                }
+                safeSetItem(PROJECTS_STORAGE_KEY, projStr);
+                safeSetItem(VERIFICATION_STORAGE_KEY, verStr);
+            }
+
+            function seedProjects() {
+                const today = new Date(), fmt = d => d.toISOString().slice(0, 10);
+                return [
+                    { id: uid(), name: 'Сайт услуги', client: 'ООО «Рога и копыта»', description: 'Лендинг', status: 'doing', tags: ['urgent'], dueDate: fmt(addDays(today, 14)), createdAt: new Date().toISOString() },
+                    { id: uid(), name: 'Магазин', client: 'ИП Иванов', description: 'Каталог + корзина', status: 'todo', tags: ['paid'], dueDate: fmt(addDays(today, 30)), createdAt: new Date().toISOString() },
+                    { id: uid(), name: 'Блог', client: 'Анна Петрова', description: 'Персональный блог', status: 'applied', tags: ['waiting'], dueDate: fmt(addDays(today, 7)), createdAt: new Date().toISOString() }
+                ];
+            }
+            function seedVerification() {
+                return [
+                    { id: uid(), dropName: 'TechStore', siteUrl: 'https://techstore.example.com', registryUrl: '', banks: [{ name: 'Сбербанк', status: 'doing' }, { name: 'Тинькофф', status: 'todo' }], status: 'doing', images: [], notes: 'Отправили документы', createdAt: new Date().toISOString() },
+                    { id: uid(), dropName: 'FoodDelivery', siteUrl: 'https://fooddelivery.example.com', registryUrl: '', banks: [{ name: 'Альфа-Банк', status: 'todo' }], status: 'todo', images: [], notes: 'Ждем ответ', createdAt: new Date().toISOString() }
+                ];
+            }
+
+            /* Render */
+            function render() { currentView === 'projects' ? renderProjects() : renderVerification(); }
+
+            function renderProjects() {
+                const q = (searchInput.value || '').toLowerCase();
+                let filtered = q ? projects.filter(p =>
+                    (p.name || '').toLowerCase().includes(q) ||
+                    (p.client || '').toLowerCase().includes(q) ||
+                    (p.description || '').toLowerCase().includes(q)
+                ) : projects.slice();
+                if (stageFilter) filtered = filtered.filter(p => p.status === stageFilter);
+
+                projectsBoard.innerHTML = '';
+                for (const st of projectStatuses) {
+                    const col = div('kanban-column'); col.dataset.status = st.id;
+                    const items = filtered.filter(p => p.status === st.id).sort(sortByDue);
+                    col.innerHTML = `
+        <div class="column-header">
+          <div class="column-title"><i class="${st.icon}"></i><span>${st.name}</span></div>
+          <div class="task-count">${items.length}</div>
+        </div>
+        <div class="task-list" data-list="${st.id}">
+          ${items.length ? items.map(renderProjectCard).join('') : `<div class="empty-state"><i class="${st.icon}"></i><p>Нет проектов</p></div>`}
+        </div>`;
+                    projectsBoard.appendChild(col);
+                }
+                attachProjectHandlers();
+            }
+
+            function renderVerification() {
+                const q = (searchInput.value || '').toLowerCase();
+                let filtered = verificationRequests.filter(v => {
+                    const inBanks = (v.banks || []).some(b => (b.name || '').toLowerCase().includes(q));
+                    return !q || (v.dropName || '').toLowerCase().includes(q) || (v.siteUrl || '').toLowerCase().includes(q) || (v.notes || '').toLowerCase().includes(q) || inBanks;
+                });
+
+                verificationBoard.innerHTML = '';
+                for (const st of verificationStatuses) {
+                    const col = div('kanban-column'); col.dataset.status = st.id;
+                    const items = filtered.filter(v => v.status === st.id).sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+                    col.innerHTML = `
+        <div class="column-header">
+          <div class="column-title"><i class="${st.icon}"></i><span>${st.name}</span></div>
+          <div class="task-count">${items.length}</div>
+        </div>
+        <div class="task-list" data-list="${st.id}">
+          ${items.length ? items.map(renderVerificationCard).join('') : `<div class="empty-state"><i class="${st.icon}"></i><p>Нет заявок</p></div>`}
+        </div>`;
+                    verificationBoard.appendChild(col);
+                }
+                attachVerificationHandlers();
+                // превью в лайтбокс
+                $all('#verificationBoard .image-preview').forEach(img => {
+                    img.addEventListener('click', () => showLightbox(img.src));
+                });
+            }
+
+            function renderProjectCard(p) {
+                const tags = (p.tags || []).map(t => tagHTML(t)).join('');
+                const due = p.dueDate ? new Date(p.dueDate).toLocaleDateString('ru-RU') : 'Не указан';
+                return `
+      <div class="task-card" draggable="true" data-id="${p.id}">
+        <div class="task-header">
+          <div>
+            <div class="task-title">${esc(p.name)}</div>
+            <div class="task-client"><i class="fas fa-user"></i>${esc(p.client || '')}</div>
+          </div>
+        </div>
+        ${p.description ? `<div class="verification-info">${esc(p.description)}</div>` : ''}
+        <div class="task-tags">${tags}</div>
+        <div class="task-footer">
+          <div class="task-date"><i class="far fa-calendar-alt"></i>${due}</div>
+          <div class="task-actions">
+            <button class="edit-task" data-id="${p.id}" title="Редактировать"><i class="fas fa-edit"></i></button>
+            <button class="delete-task" data-id="${p.id}" title="Удалить"><i class="fas fa-trash"></i></button>
+          </div>
         </div>
       </div>`;
-    card.querySelector('.open').onclick = ()=> openModal(r);
-    card.querySelector('.del').onclick = ()=> { if(confirm('Удалить заявку?')) { items = items.filter(x=>x.id!==r.id); save(); render(); } };
-    return card;
-  }
+            }
 
-  /* ===== Modal ===== */
-  function openModal(rec=null){
-    byId('form').reset();
-    byId('thumbs').innerHTML='';
-    if(rec){
-      byId('ttl').textContent = 'Редактировать заявку';
-      set('id', rec.id);
-      set('drop', rec.drop||'');
-      set('bank', rec.bank||'');
-      set('status', rec.bank_status||'open');
-      set('siteStage', rec.site_stage||'Бриф');
-      set('siteUrl', rec.site_url||'');
-      set('regUrl', rec.reg_url||'');
-      set('notes', rec.notes||'');
-      (rec.photos||[]).forEach(addThumb);
-    } else {
-      byId('ttl').textContent = 'Новая заявка';
-      set('id','');
-      set('status','open');
-    }
-    byId('photos').value='';
-    byId('modalWrap').style.display='flex';
-    setTimeout(()=> byId('drop').focus(),0);
-  }
-  function closeModal(){ byId('modalWrap').style.display='none'; }
+            function renderVerificationCard(v) {
+                const bankBadges = (v.banks || []).map(bank => {
+                    const b = bankStatuses.find(s => s.id === bank.status);
+                    const cls = b?.class || 'bank-open';
+                    const label = b?.name || '—';
+                    return `<span class="bank-badge ${cls}">${esc(bank.name)}: ${label}</span>`;
+                }).join('');
+                const imagePreviews = (v.images || []).slice(0, 4).map(src => `<img src="${src}" class="image-preview" alt="Preview">`).join('');
+                const date = new Date(v.createdAt).toLocaleString('ru-RU');
+                return `
+      <div class="task-card" draggable="true" data-id="${v.id}">
+        <div class="task-header">
+          <div>
+            <div class="task-title">${esc(v.dropName)}</div>
+            <div class="task-client"><i class="fas fa-globe"></i>${esc(v.siteUrl || '')}</div>
+          </div>
+        </div>
+        <div class="verification-links">
+          ${v.siteUrl ? `<a href="${esc(v.siteUrl)}" target="_blank" class="verification-link"><i class="fas fa-external-link-alt"></i> Сайт</a>` : ''}
+          ${v.registryUrl ? `<a href="${esc(v.registryUrl)}" target="_blank" class="verification-link"><i class="fas fa-file-contract"></i> Реестр компании</a>` : ''}
+        </div>
+        <div class="bank-status">${bankBadges}</div>
+        ${v.notes ? `<div class="verification-info">${esc(v.notes)}</div>` : ''}
+        ${imagePreviews ? `<div class="image-previews">${imagePreviews}</div>` : ''}
+        <div class="task-footer">
+          <div class="task-date"><i class="far fa-clock"></i>${date}</div>
+          <div class="task-actions">
+            <button class="edit-verification" data-id="${v.id}" title="Редактировать"><i class="fas fa-edit"></i></button>
+            <button class="delete-verification" data-id="${v.id}" title="Удалить"><i class="fas fa-trash"></i></button>
+          </div>
+        </div>
+      </div>`;
+            }
 
-  // load/show thumbnails container
-  function addThumb(p){
-    const img = new Image(); img.className='thumb'; img.src = p.dataUrl; img.alt = p.name||'photo';
-    img.onclick = ()=> showLightbox(p.dataUrl);
-    byId('thumbs').appendChild(img);
-  }
-  function showLightbox(src){ const lb=byId('lb'); lb.querySelector('img').src=src; lb.style.display='flex'; }
+            function tagHTML(t) {
+                if (t === 'urgent') return '<span class="tag tag-urgent">Срочно</span>';
+                if (t === 'waiting') return '<span class="tag tag-waiting">Ожидает</span>';
+                if (t === 'paid') return '<span class="tag tag-paid">Оплачено</span>';
+                return '';
+            }
+            function sortByDue(a, b) {
+                const da = a.dueDate ? new Date(a.dueDate) : new Date(8640000000000000);
+                const db = b.dueDate ? new Date(b.dueDate) : new Date(8640000000000000);
+                return da - db;
+            }
 
-  // handle file selection -> compress to dataURL and preview
-  byId('photos').addEventListener('change', async (e)=>{
-    const files = Array.from(e.target.files).slice(0,10);
-    for (const f of files){
-      const dataUrl = await compressImage(f, 1280, 85);
-      addThumb({ name:f.name, type:f.type, dataUrl });
-    }
-  });
+            /* Handlers */
+            function attachProjectHandlers() {
+                $all('#kanbanBoard .edit-task').forEach(btn => {
+                    btn.addEventListener('click', e => {
+                        const id = e.currentTarget.dataset.id;
+                        const p = projects.find(x => x.id === id);
+                        if (p) openProjectModal(p);
+                    });
+                });
+                $all('#kanbanBoard .delete-task').forEach(btn => {
+                    btn.addEventListener('click', e => {
+                        const id = e.currentTarget.dataset.id;
+                        if (confirm('Удалить проект?')) { projects = projects.filter(x => x.id !== id); saveAll(); render(); }
+                    });
+                });
+                initDragAndDrop(projectsBoard, (dragId, status) => {
+                    const i = projects.findIndex(p => p.id === dragId);
+                    if (i > -1) { projects[i].status = status; saveAll(); render(); }
+                });
+            }
 
-  // submit
-  byId('form').addEventListener('submit', (e)=>{
-    e.preventDefault();
-    const id = val('id') || uid();
-    const photos = Array.from(byId('thumbs').querySelectorAll('img')).map((img,i)=>({ name:`photo${i+1}.jpg`, type:'image/jpeg', dataUrl: img.src }));
-    const rec = {
-      id,
-      drop: val('drop').trim(),
-      bank: val('bank').trim(),
-      bank_status: val('status'),
-      site_stage: val('siteStage'),
-      site_url: val('siteUrl').trim(),
-      reg_url: val('regUrl').trim(),
-      notes: val('notes').trim(),
-      photos,
-      created_at: findById(id)?.created_at || Date.now(),
-      updated_at: Date.now()
-    };
-    if(!rec.drop || !rec.bank){ alert('Имя дропа и Банк обязательны'); return; }
-    const i = items.findIndex(x=>x.id===id);
-    if(i>-1) items[i] = rec; else items.push(rec);
-    // добавить банк в datalist
-    fillBanksDatalist(rec.bank);
-    save(); render(); closeModal();
-  });
+            function attachVerificationHandlers() {
+                $all('#verificationBoard .edit-verification').forEach(btn => {
+                    btn.addEventListener('click', e => {
+                        const id = e.currentTarget.dataset.id;
+                        const v = verificationRequests.find(x => x.id === id);
+                        if (v) openVerificationModal(v);
+                    });
+                });
+                $all('#verificationBoard .delete-verification').forEach(btn => {
+                    btn.addEventListener('click', e => {
+                        const id = e.currentTarget.dataset.id;
+                        if (confirm('Удалить заявку на верификацию?')) { verificationRequests = verificationRequests.filter(x => x.id !== id); saveAll(); render(); }
+                    });
+                });
+                initDragAndDrop(verificationBoard, (dragId, status) => {
+                    const i = verificationRequests.findIndex(v => v.id === dragId);
+                    if (i > -1) { verificationRequests[i].status = status; saveAll(); render(); }
+                });
+            }
 
-  /* ===== Drag & Drop between columns ===== */
-  function initDnD(){
-    let dragId = null;
-    board.querySelectorAll('.card').forEach(c=>{
-      c.addEventListener('dragstart', (e)=>{ dragId = c.dataset.id; c.classList.add('dragging'); e.dataTransfer.effectAllowed='move'; });
-      c.addEventListener('dragend', ()=>{ dragId=null; c.classList.remove('dragging'); board.querySelectorAll('.col').forEach(col=>col.classList.remove('drop')); });
-    });
-    board.querySelectorAll('.col').forEach(col=>{
-      col.addEventListener('dragover', (e)=>{ e.preventDefault(); col.classList.add('drop'); e.dataTransfer.dropEffect='move'; });
-      col.addEventListener('dragleave', ()=> col.classList.remove('drop'));
-      col.addEventListener('drop', ()=>{
-        if(!dragId) return;
-        const r = findById(dragId); if(!r) return;
-        r.bank_status = col.dataset.status;
-        r.updated_at = Date.now();
-        save(); render();
-      });
-    });
-  }
+            function initDragAndDrop(container, onDropCb) {
+                let dragId = null;
+                $all('.task-card', container).forEach(card => {
+                    card.addEventListener('dragstart', e => {
+                        dragId = card.dataset.id;
+                        card.classList.add('dragging');
+                        e.dataTransfer.setData('text/plain', dragId);
+                        e.dataTransfer.effectAllowed = 'move';
+                    });
+                    card.addEventListener('dragend', () => {
+                        dragId = null; card.classList.remove('dragging'); clearDropZones(container);
+                    });
+                });
+                $all('.kanban-column, .task-list', container).forEach(zone => {
+                    zone.addEventListener('dragover', e => {
+                        e.preventDefault();
+                        const col = zone.closest('.kanban-column');
+                        col.classList.add('drop-zone'); e.dataTransfer.dropEffect = 'move';
+                    });
+                    zone.addEventListener('dragleave', e => {
+                        const col = zone.closest('.kanban-column'); col.classList.remove('drop-zone');
+                    });
+                    zone.addEventListener('drop', e => {
+                        e.preventDefault();
+                        const col = zone.closest('.kanban-column');
+                        if (!col || !dragId) return;
+                        const status = col.dataset.status;
+                        onDropCb(dragId, status);
+                    });
+                });
+            }
+            function clearDropZones(container) { $all('.kanban-column', container).forEach(c => c.classList.remove('drop-zone')); }
 
-  /* ===== Export / Import ===== */
-  function exportJSON(){
-    const blob = new Blob([JSON.stringify(items,null,2)], { type:'application/json' });
-    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download='bankflow-export.json'; a.click(); URL.revokeObjectURL(a.href);
-  }
-  function onImport(e){
-    const f = e.target.files[0]; if(!f) return;
-    const fr = new FileReader();
-    fr.onload = () => {
-      try{
-        const data = JSON.parse(fr.result);
-        if(!Array.isArray(data)) throw new Error('Ожидается массив');
-        items = data; save(); render(); alert('Импорт завершён');
-      } catch(err){ alert('Ошибка импорта: ' + err.message); }
-      e.target.value='';
-    };
-    fr.readAsText(f);
-  }
+            /* Modals */
+            function openProjectModal(p = null) {
+                projectForm.reset();
+                if (p) {
+                    $('#projectModalTitle').textContent = 'Редактировать проект';
+                    setVal('projectId', p.id);
+                    setVal('projectName', p.name || '');
+                    setVal('clientName', p.client || '');
+                    setVal('projectDescription', p.description || '');
+                    setVal('projectStatus', p.status || 'todo');
+                    setVal('dueDate', p.dueDate || '');
+                    $('#tagUrgent').checked = (p.tags || []).includes('urgent');
+                    $('#tagWaiting').checked = (p.tags || []).includes('waiting');
+                    $('#tagPaid').checked = (p.tags || []).includes('paid');
+                } else {
+                    $('#projectModalTitle').textContent = 'Добавить проект';
+                    setVal('projectId', ''); setVal('projectStatus', 'todo');
+                }
+                showModal(projectModal); setTimeout(() => $('#projectName').focus(), 0);
+            }
+            function closeProjectModal() { hideModal(projectModal); }
 
-  /* ===== Helpers ===== */
-  function load(){ try{ items = JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]'); }catch{ items=[]; } if(!items.length) seed(); save(); }
-  function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(items)); }
-  function seed(){
-    const t = Date.now();
-    items = [
-      { id:uid(), drop:'Иван Петров', bank:'Revolut', bank_status:'verify', site_stage:'Дизайн', site_url:'https://site-a.com', reg_url:'https://companieshouse.gov.uk/xxx', notes:'ждём звонок', photos:[], created_at:t-86400000*2, updated_at:t-86400000 },
-      { id:uid(), drop:'Anna K.', bank:'Wise', bank_status:'wait', site_stage:'Верстка', site_url:'https://shop.example', reg_url:'', notes:'дослать proof of address', photos:[], created_at:t-86400000*5, updated_at:t-3600000 },
-      { id:uid(), drop:'Sergey D.', bank:'Monzo', bank_status:'open', site_stage:'Бриф', site_url:'', reg_url:'', notes:'новая', photos:[], created_at:t-7200000, updated_at:t-7200000 }
-    ];
-  }
-  function fillBanksDatalist(newName){
-    const set = new Set(items.map(x=>x.bank).filter(Boolean));
-    if(newName) set.add(newName);
-    const dl = byId('banksList'); dl.innerHTML = Array.from(set).sort().map(n=>`<option value="${esc(n)}">`).join('');
-  }
-  function el(tag, cls, html){ const n=document.createElement(tag); if(cls) n.className=cls; if(html!=null) n.innerHTML=html; return n; }
-  function byId(id){ return document.getElementById(id); }
-  function set(id,v){ byId(id).value = v; }
-  function val(id){ return byId(id).value; }
-  function esc(s){ return (s||'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;' }[m])); }
-  function linkify(u){ if(!u) return '<span class="small">—</span>'; const h=esc(u); return `<a href="${h}" target="_blank" rel="noopener">${h}</a>`; }
-  function uid(){ return Math.random().toString(36).slice(2,10); }
-  function debounce(fn,ms){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a),ms); }; }
+            function handleProjectFormSubmit(e) {
+                e.preventDefault();
+                const id = val('projectId');
+                const payload = {
+                    id: id || uid(),
+                    name: val('projectName').trim(),
+                    client: val('clientName').trim(),
+                    description: val('projectDescription').trim(),
+                    status: val('projectStatus') || 'todo',
+                    tags: [$('#tagUrgent').checked && 'urgent', $('#tagWaiting').checked && 'waiting', $('#tagPaid').checked && 'paid'].filter(Boolean),
+                    dueDate: val('dueDate') || '',
+                    createdAt: id ? (projects.find(p => p.id === id)?.createdAt || new Date().toISOString()) : new Date().toISOString()
+                };
+                if (!payload.name || !payload.client) { alert('Заполни название и клиента'); return; }
+                const i = projects.findIndex(p => p.id === payload.id);
+                if (i > -1) projects[i] = { ...projects[i], ...payload }; else projects.push(payload);
+                saveAll(); render(); closeProjectModal();
+            }
 
-  // image compress to dataURL (maxW, quality%)
-  async function compressImage(file, maxW=1280, quality=85){
-    const dataURL = await fileToDataURL(file);
-    const img = await loadImg(dataURL);
-    const scale = Math.min(1, maxW / img.width);
-    const w = Math.round(img.width*scale), h = Math.round(img.height*scale);
-    const c = document.createElement('canvas'); c.width=w; c.height=h;
-    const ctx = c.getContext('2d'); ctx.drawImage(img,0,0,w,h);
-    return c.toDataURL('image/jpeg', Math.min(Math.max(quality/100, .5), .92));
-  }
-  function fileToDataURL(file){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=()=>rej(r.error); r.readAsDataURL(file); }); }
-  function loadImg(src){ return new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=rej; i.src=src; }); }
-})();
-</script>
+            function openVerificationModal(v = null) {
+                verificationForm.reset();
+                bankInputs.innerHTML = ''; uploadedImages.innerHTML = '';
+                if (v) {
+                    $('#verificationModalTitle').textContent = 'Редактировать заявку на верификацию';
+                    setVal('verificationId', v.id);
+                    setVal('dropName', v.dropName || '');
+                    setVal('siteUrl', v.siteUrl || '');
+                    setVal('registryUrl', v.registryUrl || '');
+                    setVal('verificationStatus', v.status || 'todo');
+                    setVal('verificationNotes', v.notes || '');
+                    (v.banks || []).forEach(b => addBankInput(b.name, b.status));
+                    (v.images || []).forEach(src => addImagePreview(src));
+                } else {
+                    $('#verificationModalTitle').textContent = 'Добавить заявку на верификацию';
+                    setVal('verificationId', '');
+                    setVal('verificationStatus', 'todo');
+                    addBankInput();
+                }
+                showModal(verificationModal); setTimeout(() => $('#dropName').focus(), 0);
+            }
+            function closeVerificationModal() { hideModal(verificationModal); }
+
+            function addBankInput(bankName = '', bankStatus = 'todo') {
+                const row = div('bank-input-row');
+                row.innerHTML = `
+      <input type="text" class="form-control bank-name" placeholder="Название банка" value="${esc(bankName)}">
+      <select class="form-control bank-status">
+        ${bankStatuses.map(s => `<option value="${s.id}" ${s.id === bankStatus ? 'selected' : ''}>${s.name}</option>`).join('')}
+      </select>
+      <button type="button" class="remove-bank" title="Удалить банк"><i class="fas fa-times"></i></button>`;
+                row.querySelector('.remove-bank').addEventListener('click', () => row.remove());
+                bankInputs.appendChild(row);
+            }
+
+            /* Images: compress + limit */
+            function onImagesChosen(e) { handleImageFiles(Array.from(e.target.files || [])); e.target.value = ''; }
+            function handleImageFiles(files) {
+                const existing = $all('.uploaded-image img', uploadedImages).length;
+                const left = Math.max(0, 10 - existing);
+                const pick = files.slice(0, left);
+                if (files.length > left) alert('Можно прикрепить максимум 10 фото к заявке.');
+                pick.forEach(async f => {
+                    if (!f.type.startsWith('image/')) return;
+                    const dataUrl = await compressToDataURL(f, 900, 0.7); // <=900px, 70% quality
+                    addImagePreview(dataUrl);
+                });
+            }
+            function addImagePreview(dataUrl) {
+                const box = div('uploaded-image');
+                box.innerHTML = `<img src="${dataUrl}" alt="Uploaded"><button type="button" class="remove-image" title="Удалить"><i class="fas fa-times"></i></button>`;
+                box.querySelector('img').addEventListener('click', () => showLightbox(dataUrl));
+                box.querySelector('.remove-image').addEventListener('click', () => box.remove());
+                uploadedImages.appendChild(box);
+            }
+            async function compressToDataURL(file, maxW = 900, quality = 0.7) {
+                const src = await fileToDataURL(file);
+                const img = await loadImg(src);
+                const scale = Math.min(1, maxW / img.width);
+                const w = Math.round(img.width * scale), h = Math.round(img.height * scale);
+                const c = document.createElement('canvas'); c.width = w; c.height = h;
+                const ctx = c.getContext('2d'); ctx.drawImage(img, 0, 0, w, h);
+                // ограничим качество в пределах 0.55..0.8
+                const q = Math.max(0.55, Math.min(0.8, quality));
+                return c.toDataURL('image/jpeg', q);
+            }
+
+            /* Submit verification */
+            function handleVerificationFormSubmit(e) {
+                e.preventDefault();
+                const id = val('verificationId');
+
+                const banks = [];
+                $all('.bank-input-row', bankInputs).forEach(r => {
+                    const name = $('.bank-name', r).value.trim();
+                    const status = $('.bank-status', r).value;
+                    if (name) banks.push({ name, status });
+                });
+
+                const images = $all('.uploaded-image img', uploadedImages).map(img => img.src);
+
+                const payload = {
+                    id: id || uid(),
+                    dropName: val('dropName').trim(),
+                    siteUrl: val('siteUrl').trim(),
+                    registryUrl: val('registryUrl').trim(),
+                    banks,
+                    status: val('verificationStatus') || 'todo',
+                    images,
+                    notes: val('verificationNotes').trim(),
+                    createdAt: id ? (verificationRequests.find(v => v.id === id)?.createdAt || new Date().toISOString()) : new Date().toISOString()
+                };
+
+                if (!payload.dropName || !payload.siteUrl) { alert('Заполните имя дропа и ссылку на сайт'); return; }
+                if (!banks.length) { alert('Добавьте хотя бы один банк'); return; }
+
+                const i = verificationRequests.findIndex(v => v.id === payload.id);
+                if (i > -1) verificationRequests[i] = { ...verificationRequests[i], ...payload }; else verificationRequests.push(payload);
+
+                saveAll(); render(); closeVerificationModal();
+            }
+
+            /* Export / Import */
+            function exportProjects() { downloadJSON(projects, 'siteflow-projects.json'); }
+            function exportVerification() { downloadJSON(verificationRequests, 'siteflow-verification.json'); }
+            function importProjects(e) { importJSONFile(e, data => { if (Array.isArray(data)) { projects = data; saveAll(); render(); } else alert('Файл должен содержать массив проектов'); }); }
+            function importVerification(e) { importJSONFile(e, data => { if (Array.isArray(data)) { verificationRequests = data; saveAll(); render(); } else alert('Файл должен содержать массив заявок'); }); }
+
+            /* Helpers */
+            function $(s, r = document) { return r.querySelector(s); }
+            function $all(s, r = document) { return Array.from(r.querySelectorAll(s)); }
+            function div(c, html) { const d = document.createElement('div'); if (c) d.className = c; if (html != null) d.innerHTML = html; return d; }
+            function uid() { return Math.random().toString(36).slice(2, 10); }
+            function addDays(d, n) { const x = new Date(d); x.setDate(x.getDate() + n); return x; }
+            function esc(s) { return (s || '').replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m])); }
+            function setVal(id, v) { $('#' + id).value = v; }
+            function val(id) { return $('#' + id).value; }
+            function debounce(fn, ms) { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; }
+            function showModal(m) { m.style.display = 'flex'; m.setAttribute('aria-hidden', 'false'); }
+            function hideModal(m) { m.style.display = 'none'; m.setAttribute('aria-hidden', 'true'); }
+            function downloadJSON(obj, name) { const blob = new Blob([JSON.stringify(obj, null, 2)], { type: 'application/json' }); const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.click(); URL.revokeObjectURL(a.href); }
+            function importJSONFile(e, cb) { const f = e.target.files[0]; if (!f) return; const fr = new FileReader(); fr.onload = () => { try { const data = JSON.parse(fr.result); cb(data); } catch (err) { alert('Ошибка чтения JSON'); } e.target.value = ''; }; fr.readAsText(f); }
+            function fileToDataURL(file) { return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(file); }); }
+            function loadImg(src) { return new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; }); }
+            function showLightbox(src) { const img = lightbox.querySelector('img'); img.src = src; lightbox.style.display = 'flex'; }
+        })();
+    </script>
 </body>
+
 </html>
