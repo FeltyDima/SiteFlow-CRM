@@ -1,857 +1,427 @@
 <!DOCTYPE html>
 <html lang="ru">
-
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>SiteFlow CRM — Kanban</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        :root {
-            --bg-primary: #0f172a;
-            --bg-secondary: #1e293b;
-            --bg-tertiary: #334155;
-            --accent: #6366f1;
-            --accent-hover: #4f46e5;
-            --text-primary: #f1f5f9;
-            --text-secondary: #94a3b8;
-            --success: #22c55e;
-            --warning: #eab308;
-            --danger: #ef4444;
-            --border-radius: 8px;
-            --transition: all 0.2s ease;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        body {
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            min-height: 100vh;
-            line-height: 1.55;
-        }
-
-        .app-container {
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-
-        /* Header */
-        header {
-            background: var(--bg-secondary);
-            padding: 1rem 1.25rem;
-            display: flex;
-            gap: 1rem;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: .6rem
-        }
-
-        .logo i {
-            color: var(--accent);
-            font-size: 1.4rem
-        }
-
-        .logo h1 {
-            font-weight: 700;
-            font-size: 1.25rem;
-            letter-spacing: .2px
-        }
-
-        .search-container {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            gap: .5rem;
-            max-width: 560px;
-            margin-left: auto
-        }
-
-        .search-container i {
-            color: var(--text-secondary)
-        }
-
-        .search-container input {
-            flex: 1;
-            padding: .6rem .9rem .6rem 2.2rem;
-            border-radius: var(--border-radius);
-            border: 1px solid var(--bg-tertiary);
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            outline: none;
-        }
-
-        .search-container {
-            position: relative
-        }
-
-        .search-container>i {
-            position: absolute;
-            left: .6rem
-        }
-
-        /* Layout */
-        .main-content {
-            display: flex;
-            flex: 1;
-            min-height: 0
-        }
-
-        .sidebar {
-            width: 260px;
-            background: var(--bg-secondary);
-            padding: 1rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1.25rem;
-            flex-shrink: 0;
-            border-right: 1px solid var(--bg-tertiary)
-        }
-
-        .nav-section h2 {
-            font-size: .78rem;
-            text-transform: uppercase;
-            letter-spacing: .06em;
-            color: var(--text-secondary);
-            margin: 0 0 .5rem .25rem
-        }
-
-        .nav-item {
-            display: flex;
-            align-items: center;
-            gap: .6rem;
-            padding: .55rem .6rem;
-            border-radius: var(--border-radius);
-            color: var(--text-primary);
-            text-decoration: none;
-            cursor: pointer
-        }
-
-        .nav-item:hover {
-            background: var(--bg-tertiary)
-        }
-
-        .nav-item.active {
-            background: var(--bg-tertiary);
-            color: var(--accent)
-        }
-
-        .nav-item i {
-            width: 1.1rem;
-            text-align: center
-        }
-
-        .content {
-            flex: 1;
-            padding: 1rem;
-            overflow: auto;
-            min-width: 0
-        }
-
-        .content-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-            gap: 1rem
-        }
-
-        .btn {
-            padding: .5rem 1rem;
-            border-radius: var(--border-radius);
-            border: 1px solid var(--bg-tertiary);
-            background: var(--bg-secondary);
-            color: var(--text-primary);
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: .5rem
-        }
-
-        .btn:hover {
-            background: #243046
-        }
-
-        .btn-primary {
-            background: var(--accent);
-            border-color: var(--accent);
-            color: #fff
-        }
-
-        .btn-primary:hover {
-            background: var(--accent-hover)
-        }
-
-        /* Kanban */
-        .kanban-board {
-            display: flex;
-            gap: 1rem;
-            overflow-x: auto;
-            padding-bottom: .5rem
-        }
-
-        .kanban-column {
-            flex: 0 0 300px;
-            background: var(--bg-secondary);
-            border-radius: var(--border-radius);
-            padding: .8rem;
-            display: flex;
-            flex-direction: column;
-            max-height: 72vh;
-            border: 1px solid var(--bg-tertiary)
-        }
-
-        .column-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-bottom: .5rem;
-            border-bottom: 1px solid var(--bg-tertiary)
-        }
-
-        .column-title {
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: .4rem
-        }
-
-        .task-count {
-            background: var(--bg-tertiary);
-            color: var(--text-secondary);
-            font-size: .75rem;
-            padding: .1rem .45rem;
-            border-radius: 10px
-        }
-
-        .task-list {
-            flex: 1;
-            overflow: auto;
-            display: flex;
-            flex-direction: column;
-            gap: .7rem;
-            padding-top: .7rem
-        }
-
-        .task-card {
-            background: var(--bg-primary);
-            border-radius: var(--border-radius);
-            padding: .75rem;
-            cursor: grab;
-            border: 1px solid var(--bg-tertiary)
-        }
-
-        .task-card:active {
-            cursor: grabbing
-        }
-
-        .task-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: .35rem
-        }
-
-        .task-title {
-            font-weight: 600;
-            margin-bottom: .1rem
-        }
-
-        .task-client {
-            color: var(--text-secondary);
-            font-size: .86rem;
-            display: flex;
-            gap: .35rem;
-            align-items: center
-        }
-
-        .task-tags {
-            display: flex;
-            gap: .35rem;
-            margin: .45rem 0 0
-        }
-
-        .tag {
-            padding: .15rem .45rem;
-            border-radius: 4px;
-            font-size: .74rem;
-            font-weight: 600;
-            border: 1px solid transparent
-        }
-
-        .tag-urgent {
-            background: rgba(239, 68, 68, .12);
-            color: var(--danger);
-            border-color: rgba(239, 68, 68, .25)
-        }
-
-        .tag-waiting {
-            background: rgba(234, 179, 8, .12);
-            color: var(--warning);
-            border-color: rgba(234, 179, 8, .25)
-        }
-
-        .tag-paid {
-            background: rgba(34, 197, 94, .12);
-            color: var(--success);
-            border-color: rgba(34, 197, 94, .25)
-        }
-
-        .task-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: .55rem;
-            padding-top: .45rem;
-            border-top: 1px solid var(--bg-tertiary)
-        }
-
-        .task-date {
-            font-size: .8rem;
-            color: var(--text-secondary);
-            display: flex;
-            gap: .35rem;
-            align-items: center
-        }
-
-        .task-actions {
-            display: flex;
-            gap: .4rem
-        }
-
-        .task-actions button {
-            background: none;
-            border: 1px solid var(--bg-tertiary);
-            color: var(--text-secondary);
-            padding: .3rem .45rem;
-            border-radius: 6px;
-            cursor: pointer
-        }
-
-        .task-actions button:hover {
-            color: var(--text-primary);
-            border-color: #3b4a65
-        }
-
-        /* Drag & drop visuals */
-        .task-card.dragging {
-            opacity: .6
-        }
-
-        .kanban-column.drop-zone {
-            outline: 2px dashed var(--accent);
-            outline-offset: -6px
-        }
-
-        /* Modal */
-        .modal-backdrop {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, .7);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 50;
-            padding: 1rem
-        }
-
-        .modal {
-            background: var(--bg-secondary);
-            border: 1px solid var(--bg-tertiary);
-            border-radius: var(--border-radius);
-            width: min(640px, 100%);
-            max-height: 90vh;
-            overflow: auto;
-            padding: 1rem
-        }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-bottom: .6rem;
-            border-bottom: 1px solid var(--bg-tertiary)
-        }
-
-        .modal-header h3 {
-            font-weight: 600
-        }
-
-        .close-modal {
-            background: none;
-            border: none;
-            color: var(--text-secondary);
-            font-size: 1.2rem;
-            cursor: pointer
-        }
-
-        .close-modal:hover {
-            color: #fff
-        }
-
-        .form-group {
-            margin: .9rem 0
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: .35rem;
-            color: var(--text-secondary);
-            font-weight: 600;
-            font-size: .9rem
-        }
-
-        .form-control {
-            width: 100%;
-            padding: .6rem .7rem;
-            border-radius: var(--border-radius);
-            border: 1px solid var(--bg-tertiary);
-            background: var(--bg-primary);
-            color: #fff;
-            outline: none
-        }
-
-        .form-control:focus {
-            border-color: var(--accent)
-        }
-
-        textarea.form-control {
-            min-height: 100px;
-            resize: vertical
-        }
-
-        .form-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: .6rem;
-            margin-top: 1rem
-        }
-
-        /* Empty */
-        .empty-state {
-            text-align: center;
-            padding: 1.2rem;
-            color: var(--text-secondary)
-        }
-
-        .empty-state i {
-            font-size: 2rem;
-            margin-bottom: .4rem;
-            opacity: .6
-        }
-
-        /* Responsive */
-        @media (max-width: 992px) {
-            .main-content {
-                flex-direction: column
-            }
-
-            .sidebar {
-                width: 100%
-            }
-
-            .kanban-column {
-                flex: 0 0 280px
-            }
-        }
-
-        @media (max-width: 576px) {
-            header {
-                flex-direction: column;
-                align-items: flex-start
-            }
-
-            .search-container {
-                width: 100%;
-                max-width: none
-            }
-
-            .content {
-                padding: .9rem
-            }
-
-            .content-header {
-                flex-direction: column;
-                align-items: flex-start
-            }
-        }
-    </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>BankFlow CRM — Заявки</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root{
+  --bg-primary:#0f172a;--bg-secondary:#1e293b;--bg-tertiary:#334155;
+  --accent:#6366f1;--accent-hover:#4f46e5;
+  --text-primary:#f1f5f9;--text-secondary:#94a3b8;
+  --success:#22c55e;--warning:#eab308;--danger:#ef4444;
+  --radius:10px
+}
+*{box-sizing:border-box;margin:0;padding:0;font-family:Inter,Segoe UI,system-ui,Arial,sans-serif}
+body{background:var(--bg-primary);color:var(--text-primary);min-height:100vh;line-height:1.55}
+.app{display:flex;flex-direction:column;min-height:100vh}
+
+/* header */
+header{position:sticky;top:0;z-index:20;background:var(--bg-secondary);border-bottom:1px solid var(--bg-tertiary);
+  display:flex;gap:12px;align-items:center;padding:12px 16px}
+.logo{display:flex;gap:10px;align-items:center}
+.logo i{color:var(--accent);font-size:18px}
+.logo h1{font-size:16px}
+.search{margin-left:auto;display:flex;gap:8px;align-items:center;max-width:640px;flex:1}
+.search .field{position:relative;flex:1}
+.search .field input{width:100%;padding:10px 12px 10px 34px;border-radius:8px;border:1px solid var(--bg-tertiary);background:#0b1222;color:#fff;outline:0}
+.search .field i{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-secondary)}
+.search select, .search button{height:38px;border-radius:8px;border:1px solid var(--bg-tertiary);background:var(--bg-primary);color:#fff;padding:0 10px;cursor:pointer}
+.search button:hover{background:#1a2440}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn-primary:hover{background:var(--accent-hover)}
+
+/* layout */
+.main{display:flex;gap:12px;flex:1;min-height:0}
+aside{width:240px;background:var(--bg-secondary);border-right:1px solid var(--bg-tertiary);padding:12px;flex-shrink:0}
+aside h2{font-size:12px;text-transform:uppercase;color:var(--text-secondary);letter-spacing:.06em;margin:0 0 8px 4px}
+.nav a{display:flex;gap:8px;align-items:center;padding:8px;border-radius:8px;color:#fff;text-decoration:none}
+.nav a:hover{background:var(--bg-tertiary)}
+.nav a.active{background:var(--bg-tertiary);color:var(--accent)}
+.content{flex:1;overflow:auto;padding:12px}
+
+/* kanban */
+.board{display:flex;gap:12px;overflow:auto;padding-bottom:8px}
+.col{flex:0 0 320px;background:var(--bg-secondary);border:1px solid var(--bg-tertiary);border-radius:var(--radius);padding:10px;display:flex;flex-direction:column;max-height:75vh}
+.col-head{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--bg-tertiary);padding-bottom:6px}
+.col-title{display:flex;gap:8px;align-items:center;font-weight:700}
+.count{font-size:12px;background:var(--bg-tertiary);color:var(--text-secondary);border-radius:999px;padding:2px 8px}
+.list{flex:1;overflow:auto;display:flex;flex-direction:column;gap:10px;padding-top:10px}
+.card{background:#0b1222;border:1px solid var(--bg-terTIary);border-radius:10px;padding:10px;cursor:grab}
+.card:active{cursor:grabbing}
+.card .h{display:flex;justify-content:space-between;gap:8px}
+.card .title{font-weight:700}
+.small{font-size:12px;color:var(--text-secondary)}
+.tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.tag{font-size:11px;padding:2px 6px;border-radius:6px;border:1px solid transparent}
+.tag-ok{background:rgba(34,197,94,.12);color:var(--success);border-color:rgba(34,197,94,.25)}
+.tag-wait{background:rgba(234,179,8,.12);color:var(--warning);border-color:rgba(234,179,8,.25)}
+.tag-bad{background:rgba(239,68,68,.12);color:var(--danger);border-color:rgba(239,68,68,.25)}
+.footer{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--bg-tertiary);margin-top:8px;padding-top:8px}
+.actions{display:flex;gap:6px}
+.actions button{background:transparent;border:1px solid var(--bg-tertiary);color:var(--text-secondary);padding:5px 8px;border-radius:6px;cursor:pointer}
+.actions button:hover{color:#fff;border-color:#445476}
+.col.drop{outline:2px dashed var(--accent);outline-offset:-6px}
+
+/* modal */
+.backdrop{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;align-items:center;justify-content:center;z-index:50;padding:12px}
+.modal{background:var(--bg-secondary);border:1px solid var(--bg-tertiary);border-radius:12px;width:min(760px,100%);max-height:90vh;overflow:auto;padding:12px}
+.mhead{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--bg-tertiary);padding-bottom:8px}
+.close{background:none;border:none;font-size:22px;color:var(--text-secondary);cursor:pointer}
+.close:hover{color:#fff}
+.form{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.form .full{grid-column:1/-1}
+label{display:flex;flex-direction:column;gap:6px}
+input,select,textarea{background:var(--bg-primary);border:1px solid var(--bg-tertiary);border-radius:8px;color:#fff;padding:9px;outline:0}
+textarea{min-height:120px;resize:vertical}
+.form-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:8px}
+.thumb{width:104px;height:72px;object-fit:cover;border-radius:8px;border:1px solid var(--bg-tertiary);cursor:pointer}
+.gallery{display:flex;gap:8px;flex-wrap:wrap}
+
+/* lightbox */
+.lb{position:fixed;inset:0;background:rgba(0,0,0,.9);display:none;align-items:center;justify-content:center;z-index:70}
+.lb img{max-width:90vw;max-height:90vh;border-radius:10px;border:1px solid #222}
+
+/* responsive */
+@media (max-width:900px){.form{grid-template-columns:1fr}.board{gap:10px}.col{flex-basis:300px}}
+</style>
 </head>
-
 <body>
-    <div class="app-container">
-        <header>
-            <div class="logo">
-                <i class="fas fa-project-diagram"></i>
-                <h1>SiteFlow CRM</h1>
-            </div>
-            <div class="search-container">
-                <i class="fas fa-search"></i>
-                <input type="text" id="searchInput" placeholder="Поиск проектов…" />
-            </div>
-        </header>
-
-        <div class="main-content">
-            <aside class="sidebar">
-                <div class="nav-section">
-                    <h2>Основное</h2>
-                    <a class="nav-item active"><i class="fas fa-th-large"></i><span>Проекты</span></a>
-                </div>
-                <div class="nav-section">
-                    <h2>Этапы</h2>
-                    <a class="nav-item" data-stage="discussion"><i
-                            class="fas fa-comments"></i><span>Обсуждение</span></a>
-                    <a class="nav-item" data-stage="design"><i class="fas fa-palette"></i><span>Дизайн</span></a>
-                    <a class="nav-item" data-stage="layout"><i class="fas fa-code"></i><span>Верстка</span></a>
-                    <a class="nav-item" data-stage="development"><i
-                            class="fas fa-cogs"></i><span>Программирование</span></a>
-                    <a class="nav-item" data-stage="testing"><i class="fas fa-bug"></i><span>Тестирование</span></a>
-                    <a class="nav-item" data-stage="completed"><i
-                            class="fas fa-check-circle"></i><span>Завершённые</span></a>
-                </div>
-            </aside>
-
-            <main class="content">
-                <div class="content-header">
-                    <h2>Мои проекты</h2>
-                    <div>
-                        <button class="btn" id="exportBtn"><i class="fas fa-file-export"></i>Экспорт</button>
-                        <input id="importFile" type="file" accept="application/json" hidden>
-                        <button class="btn btn-primary" id="addProjectBtn"><i class="fas fa-plus"></i>Новый
-                            проект</button>
-                    </div>
-                </div>
-                <div class="kanban-board" id="kanbanBoard"></div>
-            </main>
-        </div>
+<div class="app">
+  <header>
+    <div class="logo"><i class="fas fa-building-columns"></i><h1>BankFlow CRM</h1></div>
+    <div class="search">
+      <div class="field"><i class="fas fa-search"></i><input id="q" placeholder="Поиск: дроп / банк / ссылки / заметки"></div>
+      <select id="fStatus"></select>
+      <button id="export" title="Экспорт JSON"><i class="fas fa-file-export"></i></button>
+      <input id="importFile" type="file" accept="application/json" hidden>
+      <button id="import" title="Импорт JSON"><i class="fas fa-file-import"></i></button>
+      <button class="btn-primary" id="add"><i class="fas fa-plus"></i>&nbsp;Новая заявка</button>
     </div>
+  </header>
 
-    <!-- Modal -->
-    <div class="modal-backdrop" id="projectModal" aria-hidden="true">
-        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
-            <div class="modal-header">
-                <h3 id="modalTitle">Добавить проект</h3>
-                <button class="close-modal" id="closeModal" aria-label="Закрыть">&times;</button>
-            </div>
-            <form id="projectForm">
-                <input type="hidden" id="projectId" />
-                <div class="form-group">
-                    <label for="projectName">Название проекта</label>
-                    <input type="text" id="projectName" class="form-control" required />
-                </div>
-                <div class="form-group">
-                    <label for="clientName">Клиент</label>
-                    <input type="text" id="clientName" class="form-control" required />
-                </div>
-                <div class="form-group">
-                    <label for="projectDescription">Описание проекта</label>
-                    <textarea id="projectDescription" class="form-control"
-                        placeholder="Коротко о целях/объёме"></textarea>
-                </div>
-                <div class="form-group">
-                    <label for="projectStatus">Статус</label>
-                    <select id="projectStatus" class="form-control" required>
-                        <option value="discussion">Обсуждение</option>
-                        <option value="design">Дизайн</option>
-                        <option value="layout">Верстка</option>
-                        <option value="development">Программирование</option>
-                        <option value="testing">Тестирование</option>
-                        <option value="completed">Завершён</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Теги</label>
-                    <div style="display:flex; gap:.6rem; flex-wrap:wrap">
-                        <label style="display:flex; align-items:center; gap:.35rem"><input type="checkbox"
-                                id="tagUrgent" value="urgent"><span class="tag tag-urgent">Срочно</span></label>
-                        <label style="display:flex; align-items:center; gap:.35rem"><input type="checkbox"
-                                id="tagWaiting" value="waiting"><span class="tag tag-waiting">Ожидает</span></label>
-                        <label style="display:flex; align-items:center; gap:.35rem"><input type="checkbox" id="tagPaid"
-                                value="paid"><span class="tag tag-paid">Оплачено</span></label>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="dueDate">Срок сдачи</label>
-                    <input type="date" id="dueDate" class="form-control" />
-                </div>
-                <div class="form-actions">
-                    <button type="button" class="btn" id="cancelProject">Отмена</button>
-                    <button type="submit" class="btn btn-primary">Сохранить</button>
-                </div>
-            </form>
-        </div>
+  <div class="main">
+    <aside>
+      <h2>Статусы банка</h2>
+      <nav class="nav" id="side"></nav>
+    </aside>
+    <main class="content">
+      <div class="board" id="board"></div>
+    </main>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="backdrop" id="modalWrap" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="ttl">
+    <div class="mhead">
+      <h3 id="ttl">Заявка</h3>
+      <button class="close" id="close">&times;</button>
     </div>
+    <form class="form" id="form">
+      <input type="hidden" id="id">
+      <label><span>Имя дропа</span>
+        <input id="drop" required>
+      </label>
+      <label><span>Банк</span>
+        <input id="bank" list="banksList" required>
+        <datalist id="banksList"></datalist>
+      </label>
+      <label><span>Статус банка</span>
+        <select id="status" required></select>
+      </label>
+      <label><span>Этап сайта (брф/дизайн/верстка/тест/готово)</span>
+        <select id="siteStage">
+          <option>Бриф</option><option>Дизайн</option><option>Верстка</option><option>Тест</option><option>Готово</option>
+        </select>
+      </label>
+      <label class="full"><span>Ссылка на сайт</span>
+        <input id="siteUrl" type="url" placeholder="https://...">
+      </label>
+      <label class="full"><span>Ссылка на реестр компании</span>
+        <input id="regUrl" type="url" placeholder="https://...">
+      </label>
+      <label class="full"><span>Фото (до 10, сжатие до ~1280px)</span>
+        <input id="photos" type="file" accept="image/*" multiple>
+      </label>
+      <div class="full">
+        <div class="gallery" id="thumbs"></div>
+      </div>
+      <label class="full"><span>Комментарий</span>
+        <textarea id="notes" placeholder="заметки..."></textarea>
+      </label>
+      <div class="form-actions full">
+        <button type="button" id="cancel">Отмена</button>
+        <button class="btn-primary">Сохранить</button>
+      </div>
+    </form>
+  </div>
+</div>
 
-    <script>
-        (function () {
-            // ===== Model =====
-            const STORAGE_KEY = 'siteflow_projects_v2';
-            const statuses = [
-                { id: 'discussion', name: 'Обсуждение', icon: 'fas fa-comments' },
-                { id: 'design', name: 'Дизайн', icon: 'fas fa-palette' },
-                { id: 'layout', name: 'Верстка', icon: 'fas fa-code' },
-                { id: 'development', name: 'Программирование', icon: 'fas fa-cogs' },
-                { id: 'testing', name: 'Тестирование', icon: 'fas fa-bug' },
-                { id: 'completed', name: 'Завершённые', icon: 'fas fa-check-circle' }
-            ];
-            let projects = [];
-            let stageFilter = null; // null=все, иначе конкретный статус
+<!-- Lightbox -->
+<div class="lb" id="lb"><img alt=""><!-- click to close --></div>
 
-            // ===== DOM refs =====
-            const board = document.getElementById('kanbanBoard');
-            const searchInput = document.getElementById('searchInput');
-            const modal = document.getElementById('projectModal');
-            const form = document.getElementById('projectForm');
-            const modalTitle = document.getElementById('modalTitle');
+<script>
+(() => {
+  /* ===== Config ===== */
+  const STORAGE_KEY = 'bankflow_apps_v1';
+  const STATUSES = [
+    { id:'open', name:'Открыто', icon:'fas fa-inbox' },
+    { id:'verify', name:'На верифе', icon:'fas fa-id-card' },
+    { id:'wait', name:'Ждём ответ', icon:'fas fa-hourglass-half' },
+    { id:'success', name:'Успех', icon:'fas fa-circle-check' },
+    { id:'decline', name:'Отказ', icon:'fas fa-circle-xmark' },
+  ];
 
-            // ===== Init =====
-            document.getElementById('addProjectBtn').addEventListener('click', () => openModal());
-            document.getElementById('closeModal').addEventListener('click', closeModal);
-            document.getElementById('cancelProject').addEventListener('click', closeModal);
-            form.addEventListener('submit', handleFormSubmit);
-            searchInput.addEventListener('input', render);
-            document.getElementById('exportBtn').addEventListener('click', exportJSON);
-            document.getElementById('importFile').addEventListener('change', importJSON);
+  /* ===== State ===== */
+  let items = [];         // заявки
+  let statusFilter = null;
+  const board = byId('board');
+  const side = byId('side');
 
-            window.addEventListener('keydown', (e) => { if (e.key === 'Escape' && modal.style.display === 'flex') closeModal(); });
-            modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+  /* ===== Init ===== */
+  load();
+  // sidebar
+  side.innerHTML = '<a class="active"><i class="fas fa-th-large"></i>Все</a>' +
+    STATUSES.map(s=>`<a data-s="${s.id}"><i class="${s.icon}"></i>${s.name}</a>`).join('');
+  side.querySelectorAll('a').forEach(a=>{
+    a.addEventListener('click', ()=>{
+      side.querySelectorAll('a').forEach(x=>x.classList.remove('active'));
+      a.classList.add('active');
+      statusFilter = a.dataset.s || null;
+      render();
+    });
+  });
 
-            load();
-            render();
+  // header controls
+  byId('add').onclick = () => openModal();
+  byId('close').onclick = closeModal;
+  byId('cancel').onclick = closeModal;
+  byId('modalWrap').addEventListener('click', e => { if (e.target.id==='modalWrap') closeModal(); });
+  byId('q').addEventListener('input', debounce(render, 200));
+  byId('export').onclick = exportJSON;
+  byId('import').onclick = () => byId('importFile').click();
+  byId('importFile').addEventListener('change', onImport);
 
-            // Sidebar filters
-            document.querySelectorAll('.sidebar .nav-item').forEach(item => {
-                item.addEventListener('click', () => {
-                    const stage = item.dataset.stage || null;
-                    // сброс активных
-                    document.querySelectorAll('.sidebar .nav-item').forEach(i => i.classList.remove('active'));
-                    if (stage !== null) {
-                        stageFilter = stage;
-                        item.classList.add('active');
-                    } else {
-                        // если это раздел "Проекты" (верхний)
-                        if (item.textContent.trim() === 'Проекты') { stageFilter = null; item.classList.add('active'); }
-                    }
-                    render();
-                });
-            });
+  // status select + banks datalist
+  const stSel = byId('status'); stSel.innerHTML = STATUSES.map(s=>`<option value="${s.id}">${s.name}</option>`).join('');
+  fillBanksDatalist();
 
-            // ===== Storage =====
-            function load() {
-                try {
-                    const raw = localStorage.getItem(STORAGE_KEY);
-                    projects = raw ? JSON.parse(raw) : getSeed();
-                    save();
-                } catch { projects = getSeed(); save(); }
-            }
-            function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(projects)); }
+  // lightbox
+  const lb = byId('lb'); lb.addEventListener('click', ()=> lb.style.display='none');
 
-            function getSeed() {
-                const today = new Date();
-                const fmt = (d) => d.toISOString().slice(0, 10);
-                return [
-                    { id: uid(), name: 'Корпоративный сайт', client: 'ООО «Рога и копыта»', description: 'Лендинг новой услуги', status: 'design', tags: ['urgent'], dueDate: fmt(addDays(today, 14)), createdAt: new Date().toISOString() },
-                    { id: uid(), name: 'Интернет‑магазин', client: 'ИП Иванов', description: 'Каталог + корзина', status: 'development', tags: ['paid'], dueDate: fmt(addDays(today, 30)), createdAt: new Date().toISOString() },
-                    { id: uid(), name: 'Блог о путешествиях', client: 'Анна Петрова', description: 'Персональный блог', status: 'testing', tags: ['waiting'], dueDate: fmt(addDays(today, 7)), createdAt: new Date().toISOString() }
-                ];
-            }
+  render();
 
-            // ===== Render =====
-            function render() {
-                const q = (searchInput.value || '').toLowerCase();
-                let filtered = !q ? projects : projects.filter(p =>
-                    (p.name || '').toLowerCase().includes(q) ||
-                    (p.client || '').toLowerCase().includes(q) ||
-                    (p.description || '').toLowerCase().includes(q)
-                );
-                if (stageFilter) { filtered = filtered.filter(p => p.status === stageFilter); }
+  /* ===== Render ===== */
+  function render(){
+    const q = (byId('q').value||'').toLowerCase();
+    let arr = items.slice();
+    if(statusFilter) arr = arr.filter(x=>x.bank_status===statusFilter);
+    if(q){
+      arr = arr.filter(x =>
+        (x.drop||'').toLowerCase().includes(q) ||
+        (x.bank||'').toLowerCase().includes(q) ||
+        (x.site_url||'').toLowerCase().includes(q) ||
+        (x.reg_url||'').toLowerCase().includes(q) ||
+        (x.notes||'').toLowerCase().includes(q));
+    }
 
-                board.innerHTML = '';
-                for (const st of statuses) {
-                    const col = document.createElement('div');
-                    col.className = 'kanban-column';
-                    col.dataset.status = st.id;
-
-                    const items = filtered.filter(p => p.status === st.id).sort(sortByDue);
-                    col.innerHTML = `
-          <div class="column-header">
-            <div class="column-title"><i class=\"${st.icon}\"></i><span>${st.name}</span></div>
-            <div class="task-count">${items.length}</div>
-          </div>
-          <div class="task-list" data-list=\"${st.id}\">
-            ${items.length ? items.map(renderCard).join('') :
-                            `<div class=\"empty-state\"><i class=\"${st.icon}\"></i><p>Нет проектов</p></div>`}
-          </div>`;
-                    board.appendChild(col);
-                }
-
-                document.querySelectorAll('.sidebar .nav-item[data-stage]').forEach(el => {
-                    el.classList.toggle('active', el.dataset.stage === stageFilter);
-                });
-
-                attachHandlers();
-            }
-
-            function renderCard(p) {
-                const tags = (p.tags || []).map(t => tagHTML(t)).join('');
-                const due = p.dueDate ? new Date(p.dueDate).toLocaleDateString('ru-RU') : 'Не указан';
-                return `
-      <div class="task-card" draggable="true" data-id="${p.id}">
-        <div class="task-header">
-          <div>
-            <div class="task-title">${escapeHtml(p.name)}</div>
-            <div class="task-client"><i class="fas fa-user"></i>${escapeHtml(p.client || '')}</div>
-          </div>
+    board.innerHTML='';
+    for (const st of STATUSES){
+      const list = arr.filter(x=>x.bank_status===st.id).sort((a,b)=>(b.updated_at||0)-(a.updated_at||0));
+      const col = el('div','col'); col.dataset.status=st.id;
+      col.innerHTML = `
+        <div class="col-head">
+          <div class="col-title"><i class="${st.icon}"></i><span>${st.name}</span></div>
+          <div class="count">${list.length}</div>
         </div>
-        <div class="task-tags">${tags}</div>
-        <div class="task-footer">
-          <div class="task-date"><i class="far fa-calendar-alt"></i>${due}</div>
-          <div class="task-actions">
-            <button class="edit-task" data-id="${p.id}" title="Редактировать"><i class="fas fa-edit"></i></button>
-            <button class="delete-task" data-id="${p.id}" title="Удалить"><i class="fas fa-trash"></i></button>
-          </div>
+        <div class="list" data-list="${st.id}"></div>`;
+      const ul = col.querySelector('.list');
+      if(!list.length){
+        const emp = el('div', 'small', `<i class="${st.icon}"></i> Нет заявок`);
+        emp.style.textAlign='center'; emp.style.opacity='.7'; emp.style.padding='10px 0';
+        ul.appendChild(emp);
+      } else {
+        list.forEach(r=> ul.appendChild(renderCard(r)));
+      }
+      board.appendChild(col);
+    }
+    initDnD();
+  }
+
+  function renderCard(r){
+    const card = el('div','card'); card.draggable = true; card.dataset.id = r.id;
+    const tag = r.bank_status==='success' ? '<span class="tag tag-ok">OK</span>' :
+                r.bank_status==='wait' ? '<span class="tag tag-wait">Ожидаем</span>' :
+                r.bank_status==='decline' ? '<span class="tag tag-bad">Отказ</span>' : '';
+    const updated = r.updated_at ? new Date(r.updated_at).toLocaleString('ru-RU') : '';
+    card.innerHTML = `
+      <div class="h">
+        <div>
+          <div class="title">${esc(r.bank)} — ${esc(r.drop)}</div>
+          <div class="small"><i class="fas fa-link"></i> ${linkify(r.site_url)} &nbsp;•&nbsp; <i class="fas fa-building"></i> ${linkify(r.reg_url)}</div>
+        </div>
+      </div>
+      <div class="tags">${tag}</div>
+      <div class="footer">
+        <div class="small"><i class="far fa-clock"></i> ${updated}</div>
+        <div class="actions">
+          <button title="Открыть" class="open"><i class="fas fa-pen-to-square"></i></button>
+          <button title="Удалить" class="del"><i class="fas fa-trash"></i></button>
         </div>
       </div>`;
-            }
+    card.querySelector('.open').onclick = ()=> openModal(r);
+    card.querySelector('.del').onclick = ()=> { if(confirm('Удалить заявку?')) { items = items.filter(x=>x.id!==r.id); save(); render(); } };
+    return card;
+  }
 
-            function tagHTML(t) {
-                if (t === 'urgent') return '<span class="tag tag-urgent">Срочно</span>';
-                if (t === 'waiting') return '<span class="tag tag-waiting">Ожидает</span>';
-                if (t === 'paid') return '<span class="tag tag-paid">Оплачено</span>';
-                return '';
-            }
+  /* ===== Modal ===== */
+  function openModal(rec=null){
+    byId('form').reset();
+    byId('thumbs').innerHTML='';
+    if(rec){
+      byId('ttl').textContent = 'Редактировать заявку';
+      set('id', rec.id);
+      set('drop', rec.drop||'');
+      set('bank', rec.bank||'');
+      set('status', rec.bank_status||'open');
+      set('siteStage', rec.site_stage||'Бриф');
+      set('siteUrl', rec.site_url||'');
+      set('regUrl', rec.reg_url||'');
+      set('notes', rec.notes||'');
+      (rec.photos||[]).forEach(addThumb);
+    } else {
+      byId('ttl').textContent = 'Новая заявка';
+      set('id','');
+      set('status','open');
+    }
+    byId('photos').value='';
+    byId('modalWrap').style.display='flex';
+    setTimeout(()=> byId('drop').focus(),0);
+  }
+  function closeModal(){ byId('modalWrap').style.display='none'; }
 
-            function sortByDue(a, b) {
-                const da = a.dueDate ? new Date(a.dueDate) : new Date(8640000000000000);
-                const db = b.dueDate ? new Date(b.dueDate) : new Date(8640000000000000);
-                return da - db;
-            }
+  // load/show thumbnails container
+  function addThumb(p){
+    const img = new Image(); img.className='thumb'; img.src = p.dataUrl; img.alt = p.name||'photo';
+    img.onclick = ()=> showLightbox(p.dataUrl);
+    byId('thumbs').appendChild(img);
+  }
+  function showLightbox(src){ const lb=byId('lb'); lb.querySelector('img').src=src; lb.style.display='flex'; }
 
-            // ===== Handlers =====
-            function attachHandlers() {
-                // Edit / delete
-                board.querySelectorAll('.edit-task').forEach(btn => {
-                    btn.addEventListener('click', e => {
-                        const id = e.currentTarget.dataset.id; const p = projects.find(x => x.id === id); if (p) openModal(p);
-                    });
-                });
-                board.querySelectorAll('.delete-task').forEach(btn => {
-                    btn.addEventListener('click', e => {
-                        const id = e.currentTarget.dataset.id;
-                        if (confirm('Удалить проект?')) { projects = projects.filter(x => x.id !== id); save(); render(); }
-                    });
-                });
+  // handle file selection -> compress to dataURL and preview
+  byId('photos').addEventListener('change', async (e)=>{
+    const files = Array.from(e.target.files).slice(0,10);
+    for (const f of files){
+      const dataUrl = await compressImage(f, 1280, 85);
+      addThumb({ name:f.name, type:f.type, dataUrl });
+    }
+  });
 
-                initDragAndDrop();
-            }
+  // submit
+  byId('form').addEventListener('submit', (e)=>{
+    e.preventDefault();
+    const id = val('id') || uid();
+    const photos = Array.from(byId('thumbs').querySelectorAll('img')).map((img,i)=>({ name:`photo${i+1}.jpg`, type:'image/jpeg', dataUrl: img.src }));
+    const rec = {
+      id,
+      drop: val('drop').trim(),
+      bank: val('bank').trim(),
+      bank_status: val('status'),
+      site_stage: val('siteStage'),
+      site_url: val('siteUrl').trim(),
+      reg_url: val('regUrl').trim(),
+      notes: val('notes').trim(),
+      photos,
+      created_at: findById(id)?.created_at || Date.now(),
+      updated_at: Date.now()
+    };
+    if(!rec.drop || !rec.bank){ alert('Имя дропа и Банк обязательны'); return; }
+    const i = items.findIndex(x=>x.id===id);
+    if(i>-1) items[i] = rec; else items.push(rec);
+    // добавить банк в datalist
+    fillBanksDatalist(rec.bank);
+    save(); render(); closeModal();
+  });
 
-            // ===== Modal =====
-            function openModal(p = null) {
-                modal.style.display = 'flex';
-                modal.setAttribute('aria-hidden', 'false');
-                form.reset();
-                if (p) {
-                    modalTitle.textContent = 'Редактировать проект';
-                    setVal('projectId', p.id);
-                    setVal('projectName', p.name || '');
-                    setVal('clientName', p.client || '');
-                    setVal('projectDescription', p.description || '');
-                    setVal('projectStatus', p.status || 'discussion');
-                    setVal('dueDate', p.dueDate || '');
-                    byId('tagUrgent').checked = (p.tags || []).includes('urgent');
-                    byId('tagWaiting').checked = (p.tags || []).includes('waiting');
-                    byId('tagPaid').checked = (p.tags || []).includes('paid');
-                } else {
-                    modalTitle.textContent = 'Добавить проект';
-                    setVal('projectId', '');
-                    setVal('projectStatus', 'discussion');
-                }
-                // Focus first field
-                setTimeout(() => byId('projectName').focus(), 0);
-            }
-            function closeModal() { modal.style.display = 'none'; modal.setAttribute('aria-hidden', 'true'); }
-            form.addEventListener('submit', handleFormSubmit);
+  /* ===== Drag & Drop between columns ===== */
+  function initDnD(){
+    let dragId = null;
+    board.querySelectorAll('.card').forEach(c=>{
+      c.addEventListener('dragstart', (e)=>{ dragId = c.dataset.id; c.classList.add('dragging'); e.dataTransfer.effectAllowed='move'; });
+      c.addEventListener('dragend', ()=>{ dragId=null; c.classList.remove('dragging'); board.querySelectorAll('.col').forEach(col=>col.classList.remove('drop')); });
+    });
+    board.querySelectorAll('.col').forEach(col=>{
+      col.addEventListener('dragover', (e)=>{ e.preventDefault(); col.classList.add('drop'); e.dataTransfer.dropEffect='move'; });
+      col.addEventListener('dragleave', ()=> col.classList.remove('drop'));
+      col.addEventListener('drop', ()=>{
+        if(!dragId) return;
+        const r = findById(dragId); if(!r) return;
+        r.bank_status = col.dataset.status;
+        r.updated_at = Date.now();
+        save(); render();
+      });
+    });
+  }
 
-            function handleFormSubmit(e) {
-                e.preventDefault();
-                const id = value('projectId');
-                const payload = {
-                    id: id || uid(),
-                    name: value('projectName').trim(),
-                    client: value('clientName').trim(),
-                    description: value('projectDescription').trim(),
-                    status: value('projectStatus') || 'discussion',
-                    tags: [byId('tagUrgent').checked && 'urgent', byId('tagWaiting').checked && 'waiting', byId('tagPaid').checked && 'paid'].filter(Boolean),
-                    dueDate: value('dueDate') || '',
-                    createdAt: id ? (projects.find(p => p.id === id)?.createdAt || new Date().toISOString()) : new Date().toISOString()
-                };
-                if (!payload.name || !payload.client) { alert('Заполни название и клиента'); return; }
+  /* ===== Export / Import ===== */
+  function exportJSON(){
+    const blob = new Blob([JSON.stringify(items,null,2)], { type:'application/json' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download='bankflow-export.json'; a.click(); URL.revokeObjectURL(a.href);
+  }
+  function onImport(e){
+    const f = e.target.files[0]; if(!f) return;
+    const fr = new FileReader();
+    fr.onload = () => {
+      try{
+        const data = JSON.parse(fr.result);
+        if(!Array.isArray(data)) throw new Error('Ожидается массив');
+        items = data; save(); render(); alert('Импорт завершён');
+      } catch(err){ alert('Ошибка импорта: ' + err.message); }
+      e.target.value='';
+    };
+    fr.readAsText(f);
+  }
 
-                if (id) {
-                    const i = projects.findIndex(p => p.id === id); if (i > -1) projects[i] = { ...projects[i], ...payload };
-                } else {
-                    projects.push(payload);
-                }
-                save(); render(); closeModal();
-            }
+  /* ===== Helpers ===== */
+  function load(){ try{ items = JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]'); }catch{ items=[]; } if(!items.length) seed(); save(); }
+  function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(items)); }
+  function seed(){
+    const t = Date.now();
+    items = [
+      { id:uid(), drop:'Иван Петров', bank:'Revolut', bank_status:'verify', site_stage:'Дизайн', site_url:'https://site-a.com', reg_url:'https://companieshouse.gov.uk/xxx', notes:'ждём звонок', photos:[], created_at:t-86400000*2, updated_at:t-86400000 },
+      { id:uid(), drop:'Anna K.', bank:'Wise', bank_status:'wait', site_stage:'Верстка', site_url:'https://shop.example', reg_url:'', notes:'дослать proof of address', photos:[], created_at:t-86400000*5, updated_at:t-3600000 },
+      { id:uid(), drop:'Sergey D.', bank:'Monzo', bank_status:'open', site_stage:'Бриф', site_url:'', reg_url:'', notes:'новая', photos:[], created_at:t-7200000, updated_at:t-7200000 }
+    ];
+  }
+  function fillBanksDatalist(newName){
+    const set = new Set(items.map(x=>x.bank).filter(Boolean));
+    if(newName) set.add(newName);
+    const dl = byId('banksList'); dl.innerHTML = Array.from(set).sort().map(n=>`<option value="${esc(n)}">`).join('');
+  }
+  function el(tag, cls, html){ const n=document.createElement(tag); if(cls) n.className=cls; if(html!=null) n.innerHTML=html; return n; }
+  function byId(id){ return document.getElementById(id); }
+  function set(id,v){ byId(id).value = v; }
+  function val(id){ return byId(id).value; }
+  function esc(s){ return (s||'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;' }[m])); }
+  function linkify(u){ if(!u) return '<span class="small">—</span>'; const h=esc(u); return `<a href="${h}" target="_blank" rel="noopener">${h}</a>`; }
+  function uid(){ return Math.random().toString(36).slice(2,10); }
+  function debounce(fn,ms){ let t; return (...a)=>{ clearTimeout(t); t=setTimeout(()=>fn(...a),ms); }; }
 
-            // ===== DnD =====
-            function initDragAndDrop() {
-                let dragId = null;
-                board.querySelectorAll('.task-card').forEach(card => {
-                    card.addEventListener('dragstart', (e) => { dragId = card.dataset.id; card.classList.add('dragging'); e.dataTransfer.setData('text/plain', dragId); e.dataTransfer.effectAllowed = 'move'; });
-                    card.addEventListener('dragend', () => { dragId = null; card.classList.remove('dragging'); clearDropZones(); });
-                });
-
-                board.querySelectorAll('.kanban-column, .task-list').forEach(zone => {
-                    zone.addEventListener('dragover', (e) => { e.preventDefault(); const col = e.currentTarget.closest('.kanban-column'); col.classList.add('drop-zone'); e.dataTransfer.dropEffect = 'move'; });
-                    zone.addEventListener('dragleave', (e) => { const col = e.currentTarget.closest('.kanban-column'); col.classList.remove('drop-zone'); });
-                    zone.addEventListener('drop', (e) => {
-                        e.preventDefault();
-                        const col = e.currentTarget.closest('.kanban-column');
-                        if (!col || !dragId) return;
-                        const status = col.dataset.status;
-                        const i = projects.findIndex(p => p.id === dragId);
-                        if (i > -1) { projects[i].status = status; save(); render(); }
-                    });
-                });
-            }
-            function clearDropZones() { board.querySelectorAll('.kanban-column').forEach(c => c.classList.remove('drop-zone')); }
-
-            // ===== Export / Import =====
-            function exportJSON() {
-                const blob = new Blob([JSON.stringify(projects, null, 2)], { type: 'application/json' });
-                const a = document.createElement('a');
-                a.href = URL.createObjectURL(blob); a.download = 'siteflow-projects.json'; a.click(); URL.revokeObjectURL(a.href);
-            }
-            function importJSON(e) {
-                const f = e.target.files[0]; if (!f) return; const fr = new FileReader();
-                fr.onload = () => { try { const data = JSON.parse(fr.result); if (Array.isArray(data)) { projects = data; save(); render(); } else alert('Файл должен содержать массив проектов'); } catch (err) { alert('Ошибка чтения JSON'); } };
-                fr.readAsText(f); e.target.value = '';
-            }
-
-            // ===== Helpers =====
-            function uid() { return Math.random().toString(36).slice(2, 10); }
-            function byId(id) { return document.getElementById(id); }
-            function value(id) { return byId(id).value; }
-            function setVal(id, v) { byId(id).value = v; }
-            function addDays(d, n) { const x = new Date(d); x.setDate(x.getDate() + n); return x; }
-            function escapeHtml(s) { return (s || '').replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[m])); }
-        })();
-    </script>
+  // image compress to dataURL (maxW, quality%)
+  async function compressImage(file, maxW=1280, quality=85){
+    const dataURL = await fileToDataURL(file);
+    const img = await loadImg(dataURL);
+    const scale = Math.min(1, maxW / img.width);
+    const w = Math.round(img.width*scale), h = Math.round(img.height*scale);
+    const c = document.createElement('canvas'); c.width=w; c.height=h;
+    const ctx = c.getContext('2d'); ctx.drawImage(img,0,0,w,h);
+    return c.toDataURL('image/jpeg', Math.min(Math.max(quality/100, .5), .92));
+  }
+  function fileToDataURL(file){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result); r.onerror=()=>rej(r.error); r.readAsDataURL(file); }); }
+  function loadImg(src){ return new Promise((res,rej)=>{ const i=new Image(); i.onload=()=>res(i); i.onerror=rej; i.src=src; }); }
+})();
+</script>
 </body>
-
 </html>
