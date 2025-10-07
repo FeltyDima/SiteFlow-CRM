@@ -137,7 +137,7 @@
         }
 
         .nav-item:hover {
-            background: var(--bg-terтиary)
+            background: var(--bg-tertiary)
         }
 
         .nav-item.active {
@@ -153,7 +153,7 @@
         .content {
             flex: 1;
             padding: 1rem;
-            overflow: auto;
+            overflow: visible;
             min-width: 0
         }
 
@@ -196,6 +196,7 @@
             display: flex;
             gap: 1rem;
             overflow-x: auto;
+            overflow-y: visible;
             padding-bottom: .5rem
         }
 
@@ -206,7 +207,7 @@
             padding: .8rem;
             display: flex;
             flex-direction: column;
-            max-height: 72vh;
+            max-height: none;
             border: 1px solid var(--bg-tertiary)
         }
 
@@ -235,7 +236,7 @@
 
         .task-list {
             flex: 1;
-            overflow: auto;
+            overflow: visible;
             display: flex;
             flex-direction: column;
             gap: .7rem;
@@ -654,6 +655,70 @@
                 flex-direction: column
             }
         }
+
+        .bank-extra {
+            background: rgba(99, 102, 241, .15);
+            /* фиолетовый, под акцент */
+            color: var(--accent);
+        }
+
+        .bank-todo {
+            background: rgba(51, 65, 85, .25);
+            /* серо-нейтральный фон */
+            color: var(--text-secondary);
+        }
+
+        /* базовый вид бейджа воркера */
+        .worker-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px;
+            /* было 18 */
+            height: 18px;
+            font-size: 0.75rem;
+            font-weight: 800;
+            border-radius: 50%;
+            margin-right: .4rem;
+            line-height: 1;
+            border: 1px solid rgba(0, 0, 0, .15);
+            box-shadow: 0 1px 1.5px rgba(0, 0, 0, .25);
+            /* лёгкая тень */
+        }
+
+        /* цветовые варианты — хороший контраст на тёмной теме */
+        .worker-sanya {
+            background: #2563eb;
+            /* indigo-600 */
+            color: #fff;
+            border-color: rgba(37, 99, 235, .6);
+        }
+
+        .worker-rusik {
+            background: #16a34a;
+            /* green-600 */
+            color: #fff;
+            border-color: rgba(22, 163, 74, .6);
+        }
+
+        .worker-egor {
+            background: #a855f7;
+            /* purple-500/600 */
+            color: #fff;
+            border-color: rgba(168, 85, 247, .6);
+        }
+
+        /* если хочешь ещё чуть «приподнять» весь бейдж банка, добавь: */
+        .bank-badge {
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .04);
+        }
+
+        .worker-dima {
+            background: #f59e0b;
+            /* amber-500 */
+            color: #fff;
+            border-color: rgba(245, 158, 11, .6);
+        }
     </style>
 </head>
 
@@ -674,17 +739,10 @@
                 <div class="nav-section">
                     <h2>Основное</h2>
                     <a class="nav-item active" data-page="projects"><i
-                            class="fas fa-th-large"></i><span>Проекты</span></a>
+                            class="fas fa-th-large"></i><span>Сайты</span></a>
                     <a class="nav-item" data-page="verification"><i
-                            class="fas fa-shield-alt"></i><span>Верификация</span></a>
-                </div>
-                <div class="nav-section">
-                    <h2>Этапы (проекты)</h2>
-                    <a class="nav-item" data-stage="todo"><i class="fas fa-inbox"></i><span>Ожидает работы</span></a>
-                    <a class="nav-item" data-stage="doing"><i class="fas fa-cogs"></i><span>В работе</span></a>
-                    <a class="nav-item" data-stage="applied"><i class="fas fa-check"></i><span>Применили</span></a>
-                    <a class="nav-item" data-stage="not_applied"><i class="fas fa-times"></i><span>Не
-                            применили</span></a>
+                            class="fas fa-shield-alt"></i><span>Дропики</span></a>
+                    <a class="nav-item" data-page="payouts"><i class="fas fa-coins"></i><span>Выплаты</span></a>
                 </div>
             </aside>
 
@@ -692,13 +750,14 @@
                 <!-- Projects -->
                 <div id="projects-view" class="content-view">
                     <div class="content-header">
-                        <h2>Мои проекты</h2>
+                        <h2>Сайты</h2>
                         <div>
                             <button class="btn" id="exportBtn"><i class="fas fa-file-export"></i>Экспорт</button>
                             <input id="importFile" type="file" accept="application/json" hidden>
                             <button class="btn" id="importBtn"><i class="fas fa-file-import"></i>Импорт</button>
                             <button class="btn btn-primary" id="addProjectBtn"><i class="fas fa-plus"></i>Новый
-                                проект</button>
+                                сайт</button>
+
                         </div>
                     </div>
                     <div class="kanban-board" id="kanbanBoard"></div>
@@ -707,7 +766,7 @@
                 <!-- Verification -->
                 <div id="verification-view" class="content-view" style="display:none">
                     <div class="content-header">
-                        <h2>Верификация сайтов</h2>
+                        <h2>Дропики</h2>
                         <div>
                             <button class="btn" id="exportVerificationBtn"><i
                                     class="fas fa-file-export"></i>Экспорт</button>
@@ -720,6 +779,20 @@
                     </div>
                     <div class="kanban-board" id="verificationBoard"></div>
                 </div>
+
+                <div id="payouts-view" class="content-view" style="display:none">
+                    <div class="content-header">
+                        <h2>Выплаты</h2>
+                        <div>
+                            <button class="btn" id="exportPayoutsBtn"><i class="fas fa-file-export"></i>Экспорт</button>
+                            <input id="importPayoutsFile" type="file" accept="application/json" hidden>
+                            <button class="btn" id="importPayoutsBtn"><i class="fas fa-file-import"></i>Импорт</button>
+                            <button class="btn btn-primary" id="addPayoutBtn"><i class="fas fa-plus"></i>Новая
+                                выплата</button>
+                        </div>
+                    </div>
+                    <div class="kanban-board" id="payoutsBoard"></div>
+                </div>
             </main>
         </div>
     </div>
@@ -728,7 +801,7 @@
     <div class="modal-backdrop" id="projectModal" aria-hidden="true">
         <div class="modal" role="dialog" aria-modal="true" aria-labelledby="projectModalTitle">
             <div class="modal-header">
-                <h3 id="projectModalTitle">Добавить проект</h3>
+                <h3 id="projectModalTitle">Добавить сайт</h3>
                 <button class="close-modal" id="closeProjectModal" aria-label="Закрыть">&times;</button>
             </div>
             <form id="projectForm">
@@ -743,15 +816,15 @@
                     <label for="projectRegistryUrl">Ссылка на реестр</label>
                     <input type="url" id="projectRegistryUrl" class="form-control" placeholder="https://..." />
                 </div>
-                <div class="form-group"><label for="projectDescription">Описание проекта</label><textarea
+                <div class="form-group"><label for="projectDescription">Описание сайта</label><textarea
                         id="projectDescription" class="form-control" placeholder="Коротко о целях/объёме"></textarea>
                 </div>
                 <div class="form-group"><label for="projectStatus">Статус</label>
                     <select id="projectStatus" class="form-control" required>
                         <option value="todo">Ожидает работы</option>
                         <option value="doing">В работе</option>
-                        <option value="applied">Применили</option>
-                        <option value="not_applied">Не применили</option>
+                        <option value="applied">Оплачено</option>
+                        <option value="not_applied">Не оплачено</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -782,8 +855,16 @@
             </div>
             <form id="verificationForm">
                 <input type="hidden" id="verificationId" />
-                <div class="form-group"><label for="dropName">Имя дропа</label><input type="text" id="dropName"
-                        class="form-control" required /></div>
+                <div class="form-group" style="display:flex; gap:.5rem; align-items:flex-end;">
+                    <div style="flex:1">
+                        <label for="dropName">Имя дропа</label>
+                        <input type="text" id="dropName" class="form-control" required />
+                    </div>
+                    <div style="width:120px">
+                        <label for="dropFlag">Флаг</label>
+                        <input type="text" id="dropFlag" class="form-control" placeholder="🇷🇺 или RU" maxlength="8" />
+                    </div>
+                </div>
                 <div class="form-group"><label for="siteUrl">Ссылка на сайт</label><input type="url" id="siteUrl"
                         class="form-control" required /></div>
                 <div class="form-group"><label for="registryUrl">Ссылка на реестр компании</label><input type="url"
@@ -827,6 +908,54 @@
         </div>
     </div>
 
+    <!-- Payout Modal -->
+    <div class="modal-backdrop" id="payoutModal" aria-hidden="true">
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="payoutModalTitle">
+            <div class="modal-header">
+                <h3 id="payoutModalTitle">Добавить выплату</h3>
+                <button class="close-modal" id="closePayoutModal" aria-label="Закрыть">&times;</button>
+            </div>
+            <form id="payoutForm">
+                <input type="hidden" id="payoutId" />
+                <div class="form-group">
+                    <label for="payoutWorker">Кому</label>
+                    <select id="payoutWorker" class="form-control" required>
+                        <option value="sanya">Саня</option>
+                        <option value="rusik">Русик</option>
+                        <option value="egor">Егор</option>
+                        <option value="dima">Дима</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="payoutAmount">Сколько выплатил</label>
+                    <input type="number" step="0.01" id="payoutAmount" class="form-control" placeholder="0.00"
+                        required />
+                </div>
+                <div class="form-group">
+                    <label for="payoutCurrency">Валюта</label>
+                    <select id="payoutCurrency" class="form-control" required>
+                        <option value="RUB">₽ Рубли</option>
+                        <option value="EUR">€ Евро</option>
+                        <option value="USD">$ Доллары</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="payoutReason">За что выплатил</label>
+                    <input type="text" id="payoutReason" class="form-control" placeholder="Описание (за что)"
+                        required />
+                </div>
+                <div class="form-group">
+                    <label for="payoutDate">Дата выплаты</label>
+                    <input type="date" id="payoutDate" class="form-control" required />
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn" id="cancelPayout">Отмена</button>
+                    <button type="submit" class="btn btn-primary">Сохранить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Lightbox -->
     <div class="lightbox" id="lightbox"><img alt=""></div>
 
@@ -838,12 +967,13 @@
             const STORAGE_BUCKET = "verification-images";                            // имя публичного бакета
             const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
+
             /* Statuses */
             const projectStatuses = [
                 { id: 'todo', name: 'Ожидает работы', icon: 'fas fa-inbox' },
                 { id: 'doing', name: 'В работе', icon: 'fas fa-cogs' },
-                { id: 'applied', name: 'Применили', icon: 'fas fa-check' },
-                { id: 'not_applied', name: 'Не применили', icon: 'fas fa-times' }
+                { id: 'applied', name: 'Оплачены', icon: 'fas fa-check' },
+                { id: 'not_applied', name: 'Не оплачены', icon: 'fas fa-times' }
             ];
             const verificationStatuses = [
                 { id: 'todo', name: 'Ожидает работы', icon: 'fas fa-inbox' },
@@ -854,14 +984,92 @@
             const bankStatuses = [
                 { id: 'open', name: 'Открыто', class: 'bank-open' },
                 { id: 'rejected', name: 'Отказ', class: 'bank-rejected' },
-                { id: 'verification', name: 'На верифе', class: 'bank-verification' },
-                { id: 'waiting', name: 'Ждем ответ', class: 'bank-waiting' }
+                { id: 'waiting', name: 'Ждем ответ', class: 'bank-waiting' },
+                { id: 'need_verify', name: 'Нужен вериф', class: 'bank-verification' }, // используем существующий стиль
+                { id: 'extra_request', name: 'Доп запрос', class: 'bank-extra' },        // новый стиль
+                { id: 'sold', name: 'Продано', class: 'bank-success' },      // используем существующий стиль
+                { id: 'todo', name: 'Нужно сделать', class: 'bank-todo' }          // новый стиль
             ];
+            const workers = [
+                { id: 'sanya', name: 'Саня', initial: 'С' },
+                { id: 'rusik', name: 'Русик', initial: 'Р' },
+                { id: 'egor', name: 'Егор', initial: 'Е' },
+                { id: 'dima', name: 'Дима', initial: 'Д' }, // ← остаётся для выплат, бэйджей и пр.
+            ];
+            const bankWorkers = workers.filter(w => w.id !== 'dima'); // <- тут Димы уже нет
+            const BANKS = [
+                { id: 'finom', name: 'FINOM' },
+                { id: 'airwallex', name: 'AIRWALLEX' },
+                { id: 'sokin', name: 'SOKIN' },
+                { id: 'narvi', name: 'NARVI' },
+                { id: 'paydo', name: 'PAYDO' },
+                { id: 'payio', name: 'PAYIO' },
+                { id: 'wirex', name: 'WIREX' },
+                { id: 'payset', name: 'PAYSET' },
+                { id: 'currenxie', name: 'CURRENXIE' },
+            ];
+
+            const CURRENCIES = [
+                { id: 'RUB', label: '₽ Рубли' },
+                { id: 'EUR', label: '€ Евро' },
+                { id: 'USD', label: '$ Доллары' },
+            ];
+
+            function currencySymbol(cur) {
+                switch ((cur || 'RUB').toUpperCase()) {
+                    case 'RUB': return '₽';
+                    case 'EUR': return '€';
+                    case 'USD': return '$';
+                    default: return '';
+                }
+            }
+
+            function bankIdByNameLoose(txt) {
+                if (!txt) return '';
+                const s = String(txt).trim().toLowerCase();
+                // точное совпадение id
+                const byId = BANKS.find(b => b.id === s);
+                if (byId) return byId.id;
+                // по названию (без регистра)
+                const byName = BANKS.find(b => b.name.toLowerCase() === s);
+                if (byName) return byName.id;
+                // эвристика: убираем пробелы/дефисы
+                const norm = s.replace(/[\s\-_.]/g, '');
+                const byLoose = BANKS.find(b => b.name.toLowerCase().replace(/[\s\-_.]/g, '') === norm);
+                return byLoose ? byLoose.id : '';
+            }
+
+            function bankLabelById(id) {
+                const b = BANKS.find(x => x.id === id);
+                return b ? b.name : '';
+            }
+
+            function normalizeWorkerId(w) {
+                if (!w) return '';
+                const map = {
+                    sanya: 'sanya', 'саня': 'sanya',
+                    rusik: 'rusik', 'русик': 'rusik',
+                    egor: 'egor', 'егор': 'egor',
+                    dima: 'dima', 'дима': 'dima',
+                };
+                const key = String(w).trim().toLowerCase();
+                return map[key] || '';
+            }
+
+            function workerLabel(wid) {
+                const w = workers.find(x => x.id === wid);
+                return w ? w.name : '';
+            }
+
+            function workerInitial(wid) {
+                const w = workers.find(x => x.id === wid);
+                return w ? w.initial : '';
+            }
 
             /* State */
             let projects = [];
             let verificationRequests = [];
-            let stageFilter = null;
+            let payouts = [];
             let currentView = 'projects';
 
             /* Refs */
@@ -879,6 +1087,10 @@
             const imageInput = $('#imageInput');
             const uploadedImages = $('#uploadedImages');
             const lightbox = $('#lightbox');
+            const payoutsView = $('#payouts-view');
+            const payoutsBoard = $('#payoutsBoard');
+            const payoutModal = $('#payoutModal');
+            const payoutForm = $('#payoutForm');
 
             /* Init UI */
             $('#addProjectBtn').addEventListener('click', () => openProjectModal());
@@ -887,17 +1099,24 @@
             $('#closeVerificationModal').addEventListener('click', closeVerificationModal);
             $('#cancelProject').addEventListener('click', closeProjectModal);
             $('#cancelVerification').addEventListener('click', closeVerificationModal);
+            $('#addPayoutBtn').addEventListener('click', () => openPayoutModal());
+            $('#closePayoutModal').addEventListener('click', closePayoutModal);
+            $('#cancelPayout').addEventListener('click', closePayoutModal);
             projectForm.addEventListener('submit', handleProjectFormSubmit);
             verificationForm.addEventListener('submit', handleVerificationFormSubmit);
             searchInput.addEventListener('input', debounce(render, 200));
+            payoutForm.addEventListener('submit', handlePayoutFormSubmit);
 
             // экспорт/импорт
-            $('#exportBtn').addEventListener('click', () => downloadJSON(projects, 'siteflow-projects.json'));
+            $('#exportBtn').addEventListener('click', () => downloadJSON(projects, 'siteflow-sites.json'));
             $('#exportVerificationBtn').addEventListener('click', () => downloadJSON(verificationRequests, 'siteflow-verification.json'));
             $('#importBtn').addEventListener('click', () => $('#importFile').click());
             $('#importVerificationBtn').addEventListener('click', () => $('#importVerificationFile').click());
             $('#importFile').addEventListener('change', importProjects);
             $('#importVerificationFile').addEventListener('change', importVerification);
+            $('#exportPayoutsBtn').addEventListener('click', () => downloadJSON(payouts, 'siteflow-payouts.json'));
+            $('#importPayoutsBtn').addEventListener('click', () => $('#importPayoutsFile').click());
+            $('#importPayoutsFile').addEventListener('change', importPayouts);
 
             $('#addBankBtn').addEventListener('click', () => addBankInput());
 
@@ -927,38 +1146,47 @@
                     $all('.sidebar .nav-item[data-page]').forEach(i => i.classList.remove('active'));
                     item.classList.add('active');
                     const page = item.dataset.page;
-                    stageFilter = null; $all('.sidebar .nav-item[data-stage]').forEach(i => i.classList.remove('active'));
-                    if (page === 'projects') { currentView = 'projects'; projectsView.style.display = ''; verificationView.style.display = 'none'; }
-                    else { currentView = 'verification'; projectsView.style.display = 'none'; verificationView.style.display = ''; }
+                    if (page === 'projects') {
+                        currentView = 'projects';
+                        projectsView.style.display = '';
+                        verificationView.style.display = 'none';
+                        payoutsView.style.display = 'none';
+                    } else if (page === 'verification') {
+                        currentView = 'verification';
+                        projectsView.style.display = 'none';
+                        verificationView.style.display = '';
+                        payoutsView.style.display = 'none';
+                    } else {
+                        currentView = 'payouts';
+                        projectsView.style.display = 'none';
+                        verificationView.style.display = 'none';
+                        payoutsView.style.display = '';
+                    }
                     render();
-                });
-            });
-            // stage filters (projects)
-            $all('.sidebar .nav-item[data-stage]').forEach(item => {
-                item.addEventListener('click', () => {
-                    $all('.sidebar .nav-item[data-stage]').forEach(i => i.classList.remove('active'));
-                    stageFilter = item.dataset.stage; item.classList.add('active'); render();
                 });
             });
 
             /* DB I/O */
             async function load() {
                 const { data: pData, error: pErr } = await supabase.from('projects').select('*').order('created_at', { ascending: true });
-                if (pErr) { console.error(pErr); alert('Не удалось загрузить проекты'); }
+                if (pErr) { console.error(pErr); alert('Не удалось загрузить сайты'); }
                 const { data: vData, error: vErr } = await supabase.from('verifications').select('*').order('created_at', { ascending: true });
                 if (vErr) { console.error(vErr); alert('Не удалось загрузить заявки'); }
                 projects = pData || [];
                 verificationRequests = vData || [];
+                const { data: payData, error: payErr } = await supabase.from('payouts').select('*').order('created_at', { ascending: true });
+                if (payErr) { console.error(payErr); alert('Не удалось загрузить выплаты'); }
+                payouts = payData || [];
             }
 
             async function saveProject(p) {
                 const { error } = await supabase.from('projects').upsert(p);
-                if (error) { console.error(error); alert('Не удалось сохранить проект'); }
+                if (error) { console.error(error); alert('Не удалось сохранить сайт'); }
             }
 
             async function deleteProjectDB(id) {
                 const { error } = await supabase.from('projects').delete().eq('id', id);
-                if (error) { console.error(error); alert('Не удалось удалить проект'); }
+                if (error) { console.error(error); alert('Не удалось удалить сайт'); }
             }
 
             async function saveVerification(v) {
@@ -969,6 +1197,15 @@
             async function deleteVerificationDB(id) {
                 const { error } = await supabase.from('verifications').delete().eq('id', id);
                 if (error) { console.error(error); alert('Не удалось удалить заявку'); }
+            }
+
+            async function savePayout(p) {
+                const { error } = await supabase.from('payouts').upsert(p);
+                if (error) { console.error(error); alert('Не удалось сохранить выплату'); }
+            }
+            async function deletePayoutDB(id) {
+                const { error } = await supabase.from('payouts').delete().eq('id', id);
+                if (error) { console.error(error); alert('Не удалось удалить выплату'); }
             }
 
             function startRealtime() {
@@ -985,10 +1222,21 @@
                         verificationRequests = data || []; render();
                     })
                     .subscribe();
+
+                supabase.channel('payouts-realtime')
+                    .on('postgres_changes', { event: '*', schema: 'public', table: 'payouts' }, async () => {
+                        const { data } = await supabase.from('payouts').select('*').order('created_at', { ascending: true });
+                        payouts = data || []; render();
+                    })
+                    .subscribe();
             }
 
             /* Render */
-            function render() { currentView === 'projects' ? renderProjects() : renderVerification(); }
+            function render() {
+                if (currentView === 'projects') renderProjects();
+                else if (currentView === 'verification') renderVerification();
+                else renderPayouts();
+            }
 
             function renderProjects() {
                 const q = (searchInput.value || '').toLowerCase();
@@ -998,7 +1246,6 @@
                     (p.registry_url || '').toLowerCase().includes(q) ||
                     (p.description || '').toLowerCase().includes(q)
                 ) : projects.slice();
-                if (stageFilter) filtered = filtered.filter(p => p.status === stageFilter);
 
                 projectsBoard.innerHTML = '';
                 for (const st of projectStatuses) {
@@ -1070,10 +1317,21 @@
 
             function renderVerificationCard(v) {
                 const bankBadges = (v.banks || []).map(bank => {
-                    const b = bankStatuses.find(s => s.id === bank.status);
+                    const st = normalizeBankStatus(bank.status);
+                    const b = bankStatuses.find(s => s.id === st);
                     const cls = b?.class || 'bank-open';
                     const label = b?.name || '—';
-                    return `<span class="bank-badge ${cls}">${esc(bank.name)}: ${label}</span>`;
+                    const bankDisplay = bank.name || bankLabelById(bank.bank_id) || (bank.bank_id || '—').toUpperCase();
+
+                    // воркер
+                    const wid = normalizeWorkerId(bank.worker);
+                    const wInit = workerInitial(wid);
+                    const wClass = wid ? `worker-${wid}` : '';
+                    const workerBadge = wInit
+                        ? `<span class="worker-badge ${wClass}" title="${workerLabel(wid)}">${wInit}</span>`
+                        : '';
+
+                    return `<span class="bank-badge ${cls}">${workerBadge}${esc(bankDisplay)}: ${label}</span>`;
                 }).join('');
                 const imagePreviews = (v.images || []).slice(0, 4).map(src => `<img src="${src}" class="image-preview" alt="Preview">`).join('');
                 const date = new Date(v.created_at).toLocaleString('ru-RU');
@@ -1099,6 +1357,72 @@
       </div>`;
             }
 
+            function renderPayouts() {
+                const q = (searchInput.value || '').toLowerCase();
+                let filtered = q
+                    ? payouts.filter(p =>
+                        (workerLabel(p.worker_id) || '').toLowerCase().includes(q) ||
+                        String(p.amount || '').toLowerCase().includes(q) ||
+                        (p.reason || '').toLowerCase().includes(q)
+                    )
+                    : payouts.slice();
+
+                // 4 колонки — по воркерам
+                const cols = [
+                    { id: 'sanya', name: 'Саня', icon: 'fas fa-user' },
+                    { id: 'rusik', name: 'Русик', icon: 'fas fa-user' },
+                    { id: 'egor', name: 'Егор', icon: 'fas fa-user' },
+                    { id: 'dima', name: 'Дима', icon: 'fas fa-user' },
+                ];
+
+                payoutsBoard.innerHTML = '';
+                for (const c of cols) {
+                    const col = div('kanban-column'); col.dataset.status = c.id; // используем status как worker_id
+                    const items = filtered.filter(p => p.worker_id === c.id).sort((a, b) => new Date(b.date || b.created_at) - new Date(a.date || a.created_at));
+                    col.innerHTML = `
+      <div class="column-header">
+        <div class="column-title"><i class="${c.icon}"></i><span>${c.name}</span></div>
+        <div class="task-count">${items.length}</div>
+      </div>
+      <div class="task-list" data-list="${c.id}">
+        ${items.length ? items.map(renderPayoutCard).join('') : `<div class="empty-state"><i class="${c.icon}"></i><p>Нет выплат</p></div>`}
+      </div>`;
+                    payoutsBoard.appendChild(col);
+                }
+                attachPayoutHandlers();
+            }
+
+            function renderPayoutCard(p) {
+                const d = p.date ? new Date(p.date).toLocaleDateString('ru-RU') : (p.created_at ? new Date(p.created_at).toLocaleDateString('ru-RU') : '—');
+                const amount = Number(p.amount || 0);
+                const cur = (p.currency || 'RUB').toUpperCase();
+                const sym = currencySymbol(cur);
+                const money = isFinite(amount)
+                    ? `${amount.toLocaleString('ru-RU', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${sym}`
+                    : `${esc(String(p.amount || ''))}`;
+                const wid = normalizeWorkerId(p.worker_id);
+                const wInit = workerInitial(wid), wClass = wid ? `worker-${wid}` : '';
+                const workerBadge = wInit ? `<span class="worker-badge ${wClass}" title="${workerLabel(wid)}">${wInit}</span>` : '';
+
+                return `
+  <div class="task-card" draggable="true" data-id="${p.id}">
+    <div class="task-header">
+      <div>
+        <div class="task-title">${workerBadge}${money}</div>
+        ${p.reason ? `<div class="task-client"><i class="fas fa-comment-dollar"></i>${esc(p.reason)}</div>` : ''}
+      </div>
+    </div>
+    <div class="task-footer">
+      <div class="task-date"><i class="far fa-calendar-alt"></i>${d}</div>
+      <div class="task-actions">
+        <button class="edit-payout" data-id="${p.id}" title="Редактировать"><i class="fas fa-edit"></i></button>
+        <button class="delete-payout" data-id="${p.id}" title="Удалить"><i class="fas fa-trash"></i></button>
+      </div>
+    </div>
+  </div>`;
+            }
+
+
             function tagHTML(t) {
                 if (t === 'urgent') return '<span class="tag tag-urgent">Срочно</span>';
                 if (t === 'waiting') return '<span class="tag tag-waiting">Ожидает</span>';
@@ -1123,7 +1447,7 @@
                 $all('#kanbanBoard .delete-task').forEach(btn => {
                     btn.addEventListener('click', async e => {
                         const id = e.currentTarget.dataset.id;
-                        if (confirm('Удалить проект?')) {
+                        if (confirm('Удалить сайт?')) {
                             projects = projects.filter(x => x.id !== id);
                             render();
                             await deleteProjectDB(id);
@@ -1157,6 +1481,37 @@
                 initDragAndDrop(verificationBoard, async (dragId, status) => {
                     const i = verificationRequests.findIndex(v => v.id === dragId);
                     if (i > -1) { verificationRequests[i].status = status; render(); await saveVerification(verificationRequests[i]); }
+                });
+            }
+
+            function attachPayoutHandlers() {
+                $all('#payoutsBoard .edit-payout').forEach(btn => {
+                    btn.addEventListener('click', e => {
+                        const id = e.currentTarget.dataset.id;
+                        const p = payouts.find(x => x.id === id);
+                        if (p) openPayoutModal(p);
+                    });
+                });
+
+                $all('#payoutsBoard .delete-payout').forEach(btn => {
+                    btn.addEventListener('click', async e => {
+                        const id = e.currentTarget.dataset.id;
+                        if (confirm('Удалить выплату?')) {
+                            payouts = payouts.filter(x => x.id !== id);
+                            render();
+                            await deletePayoutDB(id);
+                        }
+                    });
+                });
+
+                // Перетаскивание карточек между колонками: меняем worker_id
+                initDragAndDrop(payoutsBoard, async (dragId, workerId) => {
+                    const i = payouts.findIndex(x => x.id === dragId);
+                    if (i > -1) {
+                        payouts[i].worker_id = workerId;
+                        render();
+                        await savePayout(payouts[i]);
+                    }
                 });
             }
 
@@ -1197,7 +1552,7 @@
             function openProjectModal(p = null) {
                 projectForm.reset();
                 if (p) {
-                    $('#projectModalTitle').textContent = 'Редактировать проект';
+                    $('#projectModalTitle').textContent = 'Редактировать сайт';
                     setVal('projectId', p.id);
                     setVal('projectName', p.name || '');
                     setVal('projectSiteUrl', p.site_url || '');
@@ -1209,7 +1564,7 @@
                     $('#tagWaiting').checked = (p.tags || []).includes('waiting');
                     $('#tagPaid').checked = (p.tags || []).includes('paid');
                 } else {
-                    $('#projectModalTitle').textContent = 'Добавить проект';
+                    $('#projectModalTitle').textContent = 'Добавить сайт';
                     setVal('projectId', ''); setVal('projectStatus', 'todo');
                 }
                 showModal(projectModal); setTimeout(() => $('#projectName').focus(), 0);
@@ -1228,9 +1583,16 @@
                     status: val('projectStatus') || 'todo',
                     tags: [$('#tagUrgent').checked && 'urgent', $('#tagWaiting').checked && 'waiting', $('#tagPaid').checked && 'paid'].filter(Boolean),
                     due_date: nullIfEmpty(val('dueDate')),
+                    created_at: id ? (projects.find(x => x.id === id)?.created_at || new Date().toISOString()) : new Date().toISOString(),
                 };
                 if (!payload.name) { alert('Заполни название проекта'); return; }
-                await saveProject(payload);
+
+                // оптимистическое обновление
+                const i = projects.findIndex(x => x.id === payload.id);
+                if (i > -1) projects[i] = payload; else projects.push(payload);
+                render();
+
+                await saveProject(payload);  // бекенд
                 closeProjectModal();
             }
 
@@ -1240,16 +1602,26 @@
                 if (v) {
                     $('#verificationModalTitle').textContent = 'Редактировать заявку на верификацию';
                     setVal('verificationId', v.id);
-                    setVal('dropName', v.drop_name || '');
+
+                    // вытаскиваем флаг из начала имени
+                    const { flag, name } = extractFlagFromName(v.drop_name || '');
+                    setVal('dropName', name || '');
+                    setVal('dropFlag', flag || '');
+
                     setVal('siteUrl', v.site_url || '');
                     setVal('registryUrl', v.registry_url || '');
                     setVal('verificationStatus', v.status || 'todo');
                     setVal('verificationNotes', v.notes || '');
-                    (v.banks || []).forEach(b => addBankInput(b.name, b.status));
+                    (v.banks || []).forEach(b => {
+                        const bankId = b.bank_id || bankIdByNameLoose(b.name);
+                        addBankInput(b.name, normalizeBankStatus(b.status), normalizeWorkerId(b.worker), bankId);
+                    });
                     (v.images || []).forEach(src => addImagePreview(src));
                 } else {
                     $('#verificationModalTitle').textContent = 'Добавить заявку на верификацию';
                     setVal('verificationId', '');
+                    setVal('dropName', '');
+                    setVal('dropFlag', ''); // новый инпут — очищаем
                     setVal('verificationStatus', 'todo');
                     addBankInput();
                 }
@@ -1257,14 +1629,81 @@
             }
             function closeVerificationModal() { hideModal(verificationModal); }
 
-            function addBankInput(bankName = '', bankStatus = 'open') {
+            function openPayoutModal(p = null) {
+                payoutForm.reset();
+                if (p) {
+                    $('#payoutModalTitle').textContent = 'Редактировать выплату';
+                    setVal('payoutId', p.id);
+                    setVal('payoutWorker', normalizeWorkerId(p.worker_id) || 'sanya');
+                    setVal('payoutAmount', p.amount ?? '');
+                    setVal('payoutReason', p.reason || '');
+                    setVal('payoutDate', (p.date || '').slice(0, 10));
+                    setVal('payoutCurrency', (p.currency || 'RUB'));
+                } else {
+                    $('#payoutModalTitle').textContent = 'Добавить выплату';
+                    setVal('payoutId', '');
+                    setVal('payoutWorker', 'sanya');
+                    setVal('payoutAmount', '');
+                    setVal('payoutReason', '');
+                    setVal('payoutDate', new Date().toISOString().slice(0, 10));
+                    setVal('payoutCurrency', 'RUB');
+                }
+                showModal(payoutModal);
+                setTimeout(() => $('#payoutAmount').focus(), 0);
+            }
+
+            function closePayoutModal() { hideModal(payoutModal); }
+
+            async function handlePayoutFormSubmit(e) {
+                e.preventDefault();
+                const id = val('payoutId');
+                const payload = {
+                    id: id || uid(),
+                    worker_id: normalizeWorkerId(val('payoutWorker')) || 'sanya',
+                    amount: Number(val('payoutAmount')),
+                    currency: (val('payoutCurrency') || 'RUB').toUpperCase(),
+                    reason: val('payoutReason').trim(),
+                    date: val('payoutDate'),
+                    created_at: id ? (payouts.find(x => x.id === id)?.created_at || new Date().toISOString()) : new Date().toISOString()
+                };
+
+                if (!isFinite(payload.amount)) { alert('Введите корректную сумму'); return; }
+                if (!payload.reason) { alert('Заполните поле «За что выплатил»'); return; }
+                if (!payload.date) { alert('Укажите дату'); return; }
+
+                // оптимистическое обновление
+                const i = payouts.findIndex(x => x.id === payload.id);
+                if (i > -1) payouts[i] = payload; else payouts.push(payload);
+                render();
+
+                await savePayout(payload);
+                closePayoutModal();
+            }
+
+
+            function addBankInput(bankName = '', bankStatus = 'open', bankWorker = '', bankId = '') {
+                const statusNorm = normalizeBankStatus(bankStatus);
+                const workerNorm = normalizeWorkerId(bankWorker);
+
+                // пытаемся понять id банка из переданного имени/ид
+                const resolvedBankId = bankId || bankIdByNameLoose(bankName) || '';
+
                 const row = div('bank-input-row');
                 row.innerHTML = `
-      <input type="text" class="form-control bank-name" placeholder="Название банка" value="${esc(bankName)}">
-      <select class="form-control bank-status">
-        ${bankStatuses.map(s => `<option value="${s.id}" ${s.id === bankStatus ? 'selected' : ''}>${s.name}</option>`).join('')}
-      </select>
-      <button type="button" class="remove-bank" title="Удалить банк"><i class="fas fa-times"></i></button>`;
+    <select class="form-control bank-name" title="Банк">
+      <option value="">— Банк —</option>
+      ${BANKS.map(b => `<option value="${b.id}" ${b.id === resolvedBankId ? 'selected' : ''}>${b.name}</option>`).join('')}
+    </select>
+    <select class="form-control bank-status" title="Статус">
+      ${bankStatuses.map(s => `<option value="${s.id}" ${s.id === statusNorm ? 'selected' : ''}>${s.name}</option>`).join('')}
+    </select>
+    <select class="form-control bank-worker" title="Ответственный">
+      <option value="">— Воркер —</option>
+      ${bankWorkers.map(w => `<option value="${w.id}" ${w.id === workerNorm ? 'selected' : ''}>${w.name}</option>`).join('')}
+      ${workerNorm && !bankWorkers.find(w => w.id === workerNorm)
+                        ? `<option value="${workerNorm}" selected>(${workerLabel(workerNorm)})</option>` : ''}
+    </select>
+    <button type="button" class="remove-bank" title="Удалить банк"><i class="fas fa-times"></i></button>`;
                 row.querySelector('.remove-bank').addEventListener('click', () => row.remove());
                 bankInputs.appendChild(row);
             }
@@ -1283,7 +1722,10 @@
                     const blob = await compressFile(f, 1200, 0.75);
                     const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.jpg`;
                     const path = `uploads/${fileName}`;
-                    const { error: upErr } = await supabase.storage.from(STORAGE_BUCKET).upload(path, blob, { contentType: 'image/jpeg', upsert: false });
+                    const { error: upErr } = await supabase.storage.from(STORAGE_BUCKET).upload(
+                        path,
+                        blob,
+                        { contentType: 'image/jpeg', upsert: true, cacheControl: '3600' });
                     if (upErr) { console.error(upErr); alert('Не удалось загрузить изображение'); continue; }
                     const { data } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(path);
                     const url = data.publicUrl;
@@ -1306,26 +1748,43 @@
                 const w = Math.round(img.width * scale), h = Math.round(img.height * scale);
                 const c = document.createElement('canvas'); c.width = w; c.height = h;
                 const ctx = c.getContext('2d'); ctx.drawImage(img, 0, 0, w, h);
-                return await new Promise(res => c.toBlob(res, 'image/jpeg', quality));
+                const blob = await new Promise(res => c.toBlob(res, 'image/jpeg', quality));
+                if (blob) return blob;
+                // Фолбэк: если toBlob вернул null — берём исходный файл
+                return file;
             }
 
             /* Submit verification */
             async function handleVerificationFormSubmit(e) {
                 e.preventDefault();
                 const id = val('verificationId');
+                const rawName = val('dropName').trim();
+                const rawFlag = val('dropFlag').trim();
+                const flag = normalizeFlagInput(rawFlag);
+                const extracted = extractFlagFromName(rawName);
+                const cleanName = extracted.name || rawName;
+                const finalDropName = (flag ? (flag + ' ') : '') + cleanName;
 
                 const banks = [];
                 $all('.bank-input-row', bankInputs).forEach(r => {
-                    const name = $('.bank-name', r).value.trim();
-                    const status = $('.bank-status', r).value;
-                    if (name) banks.push({ name, status });
+                    const bankId = $('.bank-name', r).value.trim();     // <-- теперь из select
+                    const status = normalizeBankStatus($('.bank-status', r).value);
+                    const worker = normalizeWorkerId($('.bank-worker', r).value);
+                    if (bankId) {
+                        banks.push({
+                            bank_id: bankId,               // стабильный идентификатор
+                            name: bankLabelById(bankId),   // читаемая метка для карточки/поиска
+                            status,
+                            worker
+                        });
+                    }
                 });
 
                 const images = $all('.uploaded-image img', uploadedImages).map(img => img.src);
 
                 const payload = {
                     id: id || uid(),
-                    drop_name: val('dropName').trim(),
+                    drop_name: finalDropName,
                     site_url: val('siteUrl').trim(),
                     registry_url: val('registryUrl').trim(),
                     banks,
@@ -1336,7 +1795,11 @@
                 };
 
                 if (!payload.drop_name || !payload.site_url) { alert('Заполните имя дропа и ссылку на сайт'); return; }
-                if (!banks.length) { alert('Добавьте хотя бы один банк'); return; }
+                if (!payload.banks.length) { alert('Добавьте хотя бы один банк'); return; }
+
+                const i = verificationRequests.findIndex(x => x.id === payload.id);
+                if (i > -1) verificationRequests[i] = payload; else verificationRequests.push(payload);
+                render();
 
                 await saveVerification(payload);
                 closeVerificationModal();
@@ -1383,6 +1846,25 @@
                     await load(); render();
                 });
             }
+            function importPayouts(e) {
+                importJSONFile(e, async data => {
+                    if (!Array.isArray(data)) { alert('Файл должен содержать массив выплат'); return; }
+                    for (const p of data) {
+                        const mapped = {
+                            id: p.id || uid(),
+                            worker_id: normalizeWorkerId(p.worker_id || p.worker) || 'sanya',
+                            amount: Number(p.amount || 0),
+                            currency: (p.currency || 'RUB').toUpperCase(),
+                            reason: p.reason || '',
+                            date: p.date || (p.created_at ? p.created_at.slice(0, 10) : new Date().toISOString().slice(0, 10)),
+                            created_at: p.created_at || new Date().toISOString()
+                        };
+                        await savePayout(mapped);
+                    }
+                    await load(); render();
+                });
+            }
+
 
             /* Helpers */
             function $(s, r = document) { return r.querySelector(s); }
@@ -1406,6 +1888,52 @@
             function fileToDataURL(file) { return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = rej; r.readAsDataURL(file); }); }
             function loadImg(src) { return new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; }); }
             function showLightbox(src) { const img = lightbox.querySelector('img'); img.src = src; lightbox.style.display = 'flex'; }
+            function normalizeBankStatus(s) {
+                if (!s) return 'open';
+                // соответствия старых id → новым id
+                if (s === 'verification') return 'need_verify'; // старый «На верифе»
+                // можно расширять при необходимости:
+                // if (s === 'something_old') return 'something_new';
+                return s;
+            }
+
+            // Превращаем "RU" -> "🇷🇺"; если пришло эмоджи-флаг — вернём как есть; иначе ''.
+            function normalizeFlagInput(s) {
+                if (!s) return '';
+                s = s.trim();
+                if (isFlagEmoji(s)) return s;
+                const m = s.match(/^[A-Za-z]{2}$/);
+                if (m) return countryCodeToFlag(s);
+                return '';
+            }
+
+            function countryCodeToFlag(cc) {
+                cc = cc.trim().toUpperCase();
+                if (!/^[A-Z]{2}$/.test(cc)) return '';
+                const A = 0x1F1E6; // 'A' региональный индикатор
+                return String.fromCodePoint(A + (cc.charCodeAt(0) - 65), A + (cc.charCodeAt(1) - 65));
+            }
+
+            function isFlagEmoji(s) {
+                // Эмоджи-флаг — это две "Regional Indicator Symbols" подряд
+                if (!s) return false;
+                const cp = Array.from(s);
+                if (cp.length < 2) return false;
+                const c0 = cp[0].codePointAt(0), c1 = cp[1].codePointAt(0);
+                return c0 >= 0x1F1E6 && c0 <= 0x1F1FF && c1 >= 0x1F1E6 && c1 <= 0x1F1FF;
+            }
+
+            // Достаём флаг из начала строки и возвращаем { flag, name }
+            function extractFlagFromName(full) {
+                if (!full) return { flag: '', name: '' };
+                const trimmed = full.trim();
+                // Если начинается с флага (две региональные буквы)
+                const firstTwo = Array.from(trimmed).slice(0, 2).join('');
+                if (isFlagEmoji(firstTwo)) {
+                    return { flag: firstTwo, name: trimmed.slice(firstTwo.length).trimStart() };
+                }
+                return { flag: '', name: trimmed };
+            }
 
             // bootstrap
             await load();
