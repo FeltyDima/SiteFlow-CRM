@@ -985,10 +985,15 @@
                 { id: 'open', name: 'Открыто', class: 'bank-open' },
                 { id: 'rejected', name: 'Отказ', class: 'bank-rejected' },
                 { id: 'waiting', name: 'Ждем ответ', class: 'bank-waiting' },
-                { id: 'need_verify', name: 'Нужен вериф', class: 'bank-verification' }, // используем существующий стиль
-                { id: 'extra_request', name: 'Доп запрос', class: 'bank-extra' },        // новый стиль
-                { id: 'sold', name: 'Продано', class: 'bank-success' },      // используем существующий стиль
-                { id: 'todo', name: 'Нужно сделать', class: 'bank-todo' }          // новый стиль
+                { id: 'need_verify', name: 'Нужен вериф', class: 'bank-verification' },
+                { id: 'extra_request', name: 'Доп запрос', class: 'bank-extra' },
+                { id: 'sold', name: 'Продано', class: 'bank-success' },
+                { id: 'todo', name: 'Нужно сделать', class: 'bank-todo' },
+
+                // новые статусы
+                { id: 'phone_issue', name: 'Проблемы с номером', class: 'bank-rejected' },
+                { id: 'verify_issue', name: 'Проблемы с верификацией', class: 'bank-verification' },
+                { id: 'already_done', name: 'Уже делал', class: 'bank-todo' }
             ];
             const workers = [
                 { id: 'sanya', name: 'Саня', initial: 'С' },
