@@ -1007,7 +1007,17 @@
                 { id: 'wirex', name: 'WIREX' },
                 { id: 'payset', name: 'PAYSET' },
                 { id: 'currenxie', name: 'CURRENXIE' },
+
+                // новые
+                { id: 'mistertango', name: 'MISTERTANGO' },
+                { id: 'viva_wallet', name: 'VIVA WALLET' },
+                { id: 'vivid', name: 'VIVID' },
+                { id: 'revolut', name: 'REVOLUT' },
+
+                // «Другое…» (ручной ввод)
+                { id: 'other', name: 'Другое…' }
             ];
+
 
             const CURRENCIES = [
                 { id: 'RUB', label: '₽ Рубли' },
@@ -1685,8 +1695,12 @@
                 const statusNorm = normalizeBankStatus(bankStatus);
                 const workerNorm = normalizeWorkerId(bankWorker);
 
-                // пытаемся понять id банка из переданного имени/ид
-                const resolvedBankId = bankId || bankIdByNameLoose(bankName) || '';
+                // Пытаемся сопоставить с известными id
+                let resolvedBankId = bankId || bankIdByNameLoose(bankName) || '';
+
+                // Если не нашли — выберем «Другое…» и подставим исходное имя в инпут
+                const isCustom = !resolvedBankId && bankName;
+                if (isCustom) resolvedBankId = 'other';
 
                 const row = div('bank-input-row');
                 row.innerHTML = `
@@ -1694,6 +1708,8 @@
       <option value="">— Банк —</option>
       ${BANKS.map(b => `<option value="${b.id}" ${b.id === resolvedBankId ? 'selected' : ''}>${b.name}</option>`).join('')}
     </select>
+    <input class="form-control bank-name-custom" title="Название банка" placeholder="Введите банк"
+           style="display:${(resolvedBankId === 'other') ? 'block' : 'none'}" value="${isCustom ? esc(bankName) : ''}">
     <select class="form-control bank-status" title="Статус">
       ${bankStatuses.map(s => `<option value="${s.id}" ${s.id === statusNorm ? 'selected' : ''}>${s.name}</option>`).join('')}
     </select>
@@ -1703,10 +1719,21 @@
       ${workerNorm && !bankWorkers.find(w => w.id === workerNorm)
                         ? `<option value="${workerNorm}" selected>(${workerLabel(workerNorm)})</option>` : ''}
     </select>
-    <button type="button" class="remove-bank" title="Удалить банк"><i class="fas fa-times"></i></button>`;
+    <button type="button" class="remove-bank" title="Удалить банк"><i class="fas fa-times"></i></button>
+  `;
+
+                // Переключатель видимости поля ручного ввода
+                const sel = row.querySelector('.bank-name');
+                const custom = row.querySelector('.bank-name-custom');
+                sel.addEventListener('change', () => {
+                    custom.style.display = (sel.value === 'other') ? 'block' : 'none';
+                    if (sel.value !== 'other') custom.value = '';
+                });
+
                 row.querySelector('.remove-bank').addEventListener('click', () => row.remove());
                 bankInputs.appendChild(row);
             }
+
 
             /* Images: compress + upload to Storage */
             function onImagesChosen(e) { handleImageFiles(Array.from(e.target.files || [])); e.target.value = ''; }
@@ -1767,13 +1794,25 @@
 
                 const banks = [];
                 $all('.bank-input-row', bankInputs).forEach(r => {
-                    const bankId = $('.bank-name', r).value.trim();     // <-- теперь из select
+                    let bankId = $('.bank-name', r).value.trim();
                     const status = normalizeBankStatus($('.bank-status', r).value);
                     const worker = normalizeWorkerId($('.bank-worker', r).value);
-                    if (bankId) {
+
+                    if (bankId === 'other') {
+                        const customName = ($('.bank-name-custom', r).value || '').trim();
+                        if (!customName) return; // пустое "другое" пропускаем
+                        // Делаем простой slug как id
+                        const customId = slugify(customName);
                         banks.push({
-                            bank_id: bankId,               // стабильный идентификатор
-                            name: bankLabelById(bankId),   // читаемая метка для карточки/поиска
+                            bank_id: customId,
+                            name: customName,
+                            status,
+                            worker
+                        });
+                    } else if (bankId) {
+                        banks.push({
+                            bank_id: bankId,
+                            name: bankLabelById(bankId),
                             status,
                             worker
                         });
@@ -1896,6 +1935,16 @@
                 // if (s === 'something_old') return 'something_new';
                 return s;
             }
+            function slugify(s) {
+                return String(s)
+                    .toLowerCase()
+                    .trim()
+                    .replace(/[\s\._]+/g, '-')
+                    .replace(/[^a-z0-9\-]/g, '')
+                    .replace(/\-+/g, '-')
+                    .replace(/^\-+|\-+$/g, '');
+            }
+
 
             // Превращаем "RU" -> "🇷🇺"; если пришло эмоджи-флаг — вернём как есть; иначе ''.
             function normalizeFlagInput(s) {
