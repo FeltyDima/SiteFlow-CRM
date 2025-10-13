@@ -1060,16 +1060,26 @@
             }
 
             function normalizeWorkerId(w) {
-                if (!w) return '';
-                const map = {
-                    sanya: 'sanya', 'саня': 'sanya',
-                    rusik: 'rusik', 'русик': 'rusik',
-                    egor: 'egor', 'егор': 'egor',
-                    dima: 'dima', 'дима': 'dima',
-                };
-                const key = String(w).trim().toLowerCase();
-                return map[key] || '';
-            }
+    if (!w) return '';
+    const map = {
+        // id-ы
+        sanya: 'sanya', rusik: 'rusik', egor: 'egor', dima: 'dima',
+
+        // старые русские названия
+        'саня': 'sanya',
+        'русик': 'rusik',
+        'егор': 'egor',
+        'дима': 'dima',
+
+        // новые названия
+        'central': 'sanya',
+        'kawakar': 'rusik',
+        'бугимен': 'egor',
+        'разработчик сайтов': 'dima',
+    };
+    const key = String(w).trim().toLowerCase();
+    return map[key] || '';
+}
 
             function workerLabel(wid) {
                 const w = workers.find(x => x.id === wid);
@@ -1384,11 +1394,11 @@
 
                 // 4 колонки — по воркерам
                 const cols = [
-                    { id: 'sanya', name: 'Саня', icon: 'fas fa-user' },
-                    { id: 'rusik', name: 'Русик', icon: 'fas fa-user' },
-                    { id: 'egor', name: 'Егор', icon: 'fas fa-user' },
-                    { id: 'dima', name: 'Дима', icon: 'fas fa-user' },
-                ];
+    { id: 'sanya', name: 'central',             icon: 'fas fa-user' },
+    { id: 'rusik', name: 'kawakar',             icon: 'fas fa-user' },
+    { id: 'egor',  name: 'бугимен',             icon: 'fas fa-user' },
+    { id: 'dima',  name: 'разработчик сайтов',  icon: 'fas fa-user' },
+];
 
                 payoutsBoard.innerHTML = '';
                 for (const c of cols) {
@@ -1998,4 +2008,5 @@
 </body>
 
 </html>
+
 
