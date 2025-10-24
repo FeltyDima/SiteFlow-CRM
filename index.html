@@ -719,6 +719,64 @@
             color: #fff;
             border-color: rgba(245, 158, 11, .6);
         }
+
+        .kanban-column.collapsed .task-list {
+            display: none;
+        }
+
+        .column-toggle {
+            background: none;
+            border: 0;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: .2rem .4rem;
+            border-radius: 6px;
+        }
+
+        .column-toggle:hover {
+            color: var(--text-primary);
+            background: var(--bg-tertiary);
+        }
+
+        .segment {
+            display: inline-flex;
+            border: 1px solid var(--bg-tertiary);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .segment .seg-btn {
+            background: none;
+            border: 0;
+            padding: .25rem .5rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: .8rem;
+        }
+
+        .segment .seg-btn.active {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+        }
+
+        .badge-type {
+            display: inline-block;
+            padding: .05rem .4rem;
+            border-radius: 4px;
+            font-size: .72rem;
+            margin-left: .35rem;
+            border: 1px solid var(--bg-tertiary);
+        }
+
+        .badge-due {
+            color: var(--warning);
+            background: rgba(234, 179, 8, .12);
+        }
+
+        .badge-paid {
+            color: var(--success);
+            background: rgba(34, 197, 94, .12);
+        }
     </style>
 </head>
 
@@ -927,6 +985,13 @@
                     </select>
                 </div>
                 <div class="form-group">
+                    <label for="payoutType">Тип</label>
+                    <select id="payoutType" class="form-control" required>
+                        <option value="paid">Выплатил</option>
+                        <option value="due">Должен</option>
+                    </select>
+                </div>
+                <div class="form-group">
                     <label for="payoutAmount">Сколько выплатил</label>
                     <input type="number" step="0.01" id="payoutAmount" class="form-control" placeholder="0.00"
                         required />
@@ -979,7 +1044,8 @@
                 { id: 'todo', name: 'Общие', icon: 'fas fa-inbox' },
                 { id: 'doing', name: 'central', icon: 'fas fa-check-circle' },
                 { id: 'success', name: 'бугимен', icon: 'fas fa-check-circle' },
-                { id: 'rejected', name: 'kawakar', icon: 'fas fa-check-circle' }
+                { id: 'rejected', name: 'kawakar', icon: 'fas fa-check-circle' },
+                { id: 'archived', name: 'Архив', icon: 'fas fa-box-archive' }
             ];
             const bankStatuses = [
                 { id: 'open', name: 'Открыто', class: 'bank-open' },
@@ -1060,26 +1126,26 @@
             }
 
             function normalizeWorkerId(w) {
-    if (!w) return '';
-    const map = {
-        // id-ы
-        sanya: 'sanya', rusik: 'rusik', egor: 'egor', dima: 'dima',
+                if (!w) return '';
+                const map = {
+                    // id-ы
+                    sanya: 'sanya', rusik: 'rusik', egor: 'egor', dima: 'dima',
 
-        // старые русские названия
-        'саня': 'sanya',
-        'русик': 'rusik',
-        'егор': 'egor',
-        'дима': 'dima',
+                    // старые русские названия
+                    'саня': 'sanya',
+                    'русик': 'rusik',
+                    'егор': 'egor',
+                    'дима': 'dima',
 
-        // новые названия
-        'central': 'sanya',
-        'kawakar': 'rusik',
-        'бугимен': 'egor',
-        'разработчик сайтов': 'dima',
-    };
-    const key = String(w).trim().toLowerCase();
-    return map[key] || '';
-}
+                    // новые названия
+                    'central': 'sanya',
+                    'kawakar': 'rusik',
+                    'бугимен': 'egor',
+                    'разработчик сайтов': 'dima',
+                };
+                const key = String(w).trim().toLowerCase();
+                return map[key] || '';
+            }
 
             function workerLabel(wid) {
                 const w = workers.find(x => x.id === wid);
@@ -1096,6 +1162,8 @@
             let verificationRequests = [];
             let payouts = [];
             let currentView = 'projects';
+            let collapsedColumns = { archived: false };
+            let payoutModeByWorker = { sanya: 'paid', rusik: 'paid', egor: 'paid', dima: 'paid' };
 
             /* Refs */
             const projectsView = $('#projects-view');
@@ -1298,17 +1366,50 @@
 
                 verificationBoard.innerHTML = '';
                 for (const st of verificationStatuses) {
-                    const col = div('kanban-column'); col.dataset.status = st.id;
-                    const items = filtered.filter(v => v.status === st.id).sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+                    const col = div('kanban-column');
+                    col.dataset.status = st.id;
+
+                    const items = filtered
+                        .filter(v => v.status === st.id)
+                        .sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+
+                    // — новенькое: логика сворачивания только для archived
+                    const isArchived = (st.id === 'archived');
+                    const isCollapsed = !!collapsedColumns[st.id];
+                    if (isCollapsed) col.classList.add('collapsed'); else col.classList.remove('collapsed');
+
                     col.innerHTML = `
-        <div class="column-header">
-          <div class="column-title"><i class="${st.icon}"></i><span>${st.name}</span></div>
-          <div class="task-count">${items.length}</div>
-        </div>
-        <div class="task-list" data-list="${st.id}">
-          ${items.length ? items.map(renderVerificationCard).join('') : `<div class="empty-state"><i class="${st.icon}"></i><p>Нет заявок</p></div>`}
-        </div>`;
+  <div class="column-header">
+    <div class="column-title"><i class="${st.icon}"></i><span>${st.name}</span></div>
+    <div style="display:flex; align-items:center; gap:.35rem;">
+      <div class="task-count">${items.length}</div>
+      ${isArchived ? `
+        <button class="column-toggle" data-col="${st.id}" title="${isCollapsed ? 'Развернуть' : 'Свернуть'}">
+          <i class="fas ${isCollapsed ? 'fa-chevron-down' : 'fa-chevron-up'}"></i>
+        </button>
+      ` : ``}
+    </div>
+  </div>
+  <div class="task-list" data-list="${st.id}">
+    ${items.length
+                            ? items.map(renderVerificationCard).join('')
+                            : `<div class="empty-state"><i class="${st.icon}"></i><p>Нет заявок</p></div>`
+                        }
+  </div>`;
+
                     verificationBoard.appendChild(col);
+
+                    // — новенькое: обработчик кнопки сворачивания для archived
+                    if (isArchived) {
+                        const toggleBtn = col.querySelector('.column-toggle');
+                        if (toggleBtn) {
+                            toggleBtn.addEventListener('click', () => {
+                                const key = toggleBtn.dataset.col; // 'archived'
+                                collapsedColumns[key] = !collapsedColumns[key];
+                                render(); // перерисуем, чтобы обновить иконку/видимость
+                            });
+                        }
+                    }
                 }
                 attachVerificationHandlers();
                 $all('#verificationBoard .image-preview').forEach(img => {
@@ -1394,26 +1495,53 @@
 
                 // 4 колонки — по воркерам
                 const cols = [
-    { id: 'sanya', name: 'central',             icon: 'fas fa-user' },
-    { id: 'rusik', name: 'kawakar',             icon: 'fas fa-user' },
-    { id: 'egor',  name: 'бугимен',             icon: 'fas fa-user' },
-    { id: 'dima',  name: 'разработчик сайтов',  icon: 'fas fa-user' },
-];
+                    { id: 'sanya', name: 'central', icon: 'fas fa-user' },
+                    { id: 'rusik', name: 'kawakar', icon: 'fas fa-user' },
+                    { id: 'egor', name: 'бугимен', icon: 'fas fa-user' },
+                    { id: 'dima', name: 'разработчик сайтов', icon: 'fas fa-user' },
+                ];
 
                 payoutsBoard.innerHTML = '';
                 for (const c of cols) {
-                    const col = div('kanban-column'); col.dataset.status = c.id; // используем status как worker_id
-                    const items = filtered.filter(p => p.worker_id === c.id).sort((a, b) => new Date(b.date || b.created_at) - new Date(a.date || a.created_at));
+                    const col = div('kanban-column');
+                    col.dataset.status = c.id; // используем статус как worker_id
+                    const mode = payoutModeByWorker[c.id] || 'paid';
+
+                    const items = filtered
+                        .filter(p => p.worker_id === c.id && (p.type || 'paid') === mode)
+                        .sort((a, b) => new Date(b.date || b.created_at) - new Date(a.date || a.created_at));
+
                     col.innerHTML = `
-      <div class="column-header">
-        <div class="column-title"><i class="${c.icon}"></i><span>${c.name}</span></div>
+    <div class="column-header">
+      <div class="column-title">
+        <i class="${c.icon}"></i><span>${c.name}</span>
+      </div>
+      <div style="display:flex; align-items:center; gap:.5rem;">
+        <div class="segment" data-worker="${c.id}">
+          <button class="seg-btn ${mode === 'due' ? 'active' : ''}" data-mode="due">Должен</button>
+          <button class="seg-btn ${mode === 'paid' ? 'active' : ''}" data-mode="paid">Выплатил</button>
+        </div>
         <div class="task-count">${items.length}</div>
       </div>
-      <div class="task-list" data-list="${c.id}">
-        ${items.length ? items.map(renderPayoutCard).join('') : `<div class="empty-state"><i class="${c.icon}"></i><p>Нет выплат</p></div>`}
-      </div>`;
+    </div>
+    <div class="task-list" data-list="${c.id}">
+      ${items.length ? items.map(renderPayoutCard).join('')
+                            : `<div class="empty-state"><i class="${c.icon}"></i><p>Нет записей</p></div>`}
+    </div>`;
+
                     payoutsBoard.appendChild(col);
                 }
+
+                // после цикла (или внутри — но один раз) вешаем обработчики на переключатели:
+                $all('.segment .seg-btn', payoutsBoard).forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const worker = e.currentTarget.closest('.segment').dataset.worker;
+                        const mode = e.currentTarget.dataset.mode; // 'due' | 'paid'
+                        payoutModeByWorker[worker] = mode;
+                        render(); // перерисовать, чтобы обновить активное состояние и список
+                    });
+                });
+
                 attachPayoutHandlers();
             }
 
@@ -1428,12 +1556,16 @@
                 const wid = normalizeWorkerId(p.worker_id);
                 const wInit = workerInitial(wid), wClass = wid ? `worker-${wid}` : '';
                 const workerBadge = wInit ? `<span class="worker-badge ${wClass}" title="${workerLabel(wid)}">${wInit}</span>` : '';
+                const t = (p.type || 'paid');
+                const typeBadge = `<span class="badge-type ${t === 'due' ? 'badge-due' : 'badge-paid'}">
+  ${t === 'due' ? 'Должен' : 'Выплатил'}
+</span>`;
 
                 return `
   <div class="task-card" draggable="true" data-id="${p.id}">
     <div class="task-header">
       <div>
-        <div class="task-title">${workerBadge}${money}</div>
+        <div class="task-title">${workerBadge}${money} ${typeBadge}</div>
         ${p.reason ? `<div class="task-client"><i class="fas fa-comment-dollar"></i>${esc(p.reason)}</div>` : ''}
       </div>
     </div>
@@ -1664,6 +1796,7 @@
                     setVal('payoutReason', p.reason || '');
                     setVal('payoutDate', (p.date || '').slice(0, 10));
                     setVal('payoutCurrency', (p.currency || 'RUB'));
+                    setVal('payoutType', (p.type || 'paid'));
                 } else {
                     $('#payoutModalTitle').textContent = 'Добавить выплату';
                     setVal('payoutId', '');
@@ -1672,6 +1805,7 @@
                     setVal('payoutReason', '');
                     setVal('payoutDate', new Date().toISOString().slice(0, 10));
                     setVal('payoutCurrency', 'RUB');
+                    setVal('payoutType', 'paid');
                 }
                 showModal(payoutModal);
                 setTimeout(() => $('#payoutAmount').focus(), 0);
@@ -1685,6 +1819,7 @@
                 const payload = {
                     id: id || uid(),
                     worker_id: normalizeWorkerId(val('payoutWorker')) || 'sanya',
+                    type: (val('payoutType') || 'paid'),
                     amount: Number(val('payoutAmount')),
                     currency: (val('payoutCurrency') || 'RUB').toUpperCase(),
                     reason: val('payoutReason').trim(),
@@ -1907,6 +2042,7 @@
                         const mapped = {
                             id: p.id || uid(),
                             worker_id: normalizeWorkerId(p.worker_id || p.worker) || 'sanya',
+                            type: (p.type || p.kind || 'paid'),
                             amount: Number(p.amount || 0),
                             currency: (p.currency || 'RUB').toUpperCase(),
                             reason: p.reason || '',
@@ -2008,5 +2144,3 @@
 </body>
 
 </html>
-
-
