@@ -982,6 +982,7 @@
                         <option value="rusik">Русик</option>
                         <option value="egor">Егор</option>
                         <option value="dima">Дима</option>
+                        <option value="danya">Даня</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -1044,9 +1045,9 @@
                 { id: 'todo', name: 'Общие', icon: 'fas fa-inbox' },
                 { id: 'doing', name: 'central', icon: 'fas fa-check-circle' },
                 { id: 'success', name: 'бугимен', icon: 'fas fa-check-circle' },
-                { id: 'rejected', name: 'kawakar', icon: 'fas fa-check-circle' },
-                { id: 'rejected', name: 'anchopa', icon: 'fas fa-check-circle' },
-                { id: 'archived', name: 'Архив', icon: 'fas fa-box-archive' }
+                { id: 'rejecteds', name: 'anchopa', icon: 'fas fa-check-circle' },
+                { id: 'archived', name: 'Архив', icon: 'fas fa-box-archive' },
+                { id: 'rejected', name: 'kawakar', icon: 'fas fa-check-circle' }
             ];
             const bankStatuses = [
                 { id: 'open', name: 'Открыто', class: 'bank-open' },
@@ -1132,7 +1133,7 @@
                 if (!w) return '';
                 const map = {
                     // id-ы
-                    sanya: 'sanya', rusik: 'rusik', egor: 'egor', dima: 'dima',
+                    sanya: 'sanya', rusik: 'rusik', egor: 'egor', dima: 'dima', danya: 'danya',
 
                     // старые русские названия
                     'саня': 'sanya',
@@ -1168,7 +1169,7 @@
             let payouts = [];
             let currentView = 'projects';
             let collapsedColumns = { archived: false };
-            let payoutModeByWorker = { sanya: 'paid', rusik: 'paid', egor: 'paid', dima: 'paid' };
+            let payoutModeByWorker = { sanya: 'paid', rusik: 'paid', egor: 'paid', dima: 'paid', danya: 'paid' };
 
             /* Refs */
             const projectsView = $('#projects-view');
@@ -1501,9 +1502,10 @@
                 // 4 колонки — по воркерам
                 const cols = [
                     { id: 'sanya', name: 'central', icon: 'fas fa-user' },
-                    { id: 'rusik', name: 'kawakar', icon: 'fas fa-user' },
                     { id: 'egor', name: 'бугимен', icon: 'fas fa-user' },
+                    { id: 'danya', name: 'anchopa', icon: 'fas fa-user' },
                     { id: 'dima', name: 'разработчик сайтов', icon: 'fas fa-user' },
+                    { id: 'rusik', name: 'kawakar', icon: 'fas fa-user' },
                 ];
 
                 payoutsBoard.innerHTML = '';
@@ -2149,5 +2151,3 @@
 </body>
 
 </html>
-
-
