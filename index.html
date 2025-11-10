@@ -1045,6 +1045,7 @@
                 { id: 'doing', name: 'central', icon: 'fas fa-check-circle' },
                 { id: 'success', name: 'бугимен', icon: 'fas fa-check-circle' },
                 { id: 'rejected', name: 'kawakar', icon: 'fas fa-check-circle' },
+                { id: 'rejected', name: 'anchopa', icon: 'fas fa-check-circle' },
                 { id: 'archived', name: 'Архив', icon: 'fas fa-box-archive' }
             ];
             const bankStatuses = [
@@ -1065,6 +1066,7 @@
                 { id: 'sanya', name: 'central', initial: 'C' },
                 { id: 'rusik', name: 'kawakar', initial: 'K' },
                 { id: 'egor', name: 'бугимен', initial: 'Б' },
+                { id: 'danya', name: 'anchopa', initial: 'Д' },
                 { id: 'dima', name: 'разработчик сайтов', initial: 'РС' }, // ← остаётся для выплат, бэйджей и пр.
             ];
             const bankWorkers = workers.filter(w => w.id !== 'dima'); // <- тут Димы уже нет
@@ -1137,12 +1139,14 @@
                     'русик': 'rusik',
                     'егор': 'egor',
                     'дима': 'dima',
+                    'даня': 'danya',
 
                     // новые названия
                     'central': 'sanya',
                     'kawakar': 'rusik',
                     'бугимен': 'egor',
                     'разработчик сайтов': 'dima',
+                    'anchopa': 'danya',
                 };
                 const key = String(w).trim().toLowerCase();
                 return map[key] || '';
@@ -2145,4 +2149,5 @@
 </body>
 
 </html>
+
 
